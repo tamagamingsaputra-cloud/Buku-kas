@@ -434,6 +434,130 @@
   }
 
   /* ---------------------------------------------------------
+     AKUN — login/daftar (email+password), Google sign-in, dan
+     sinkronisasi cadangan ke cloud lewat cloud-sync.js.
+     Seluruhnya OPSIONAL: jika firebase-config.js belum diisi,
+     CloudSync akan menolak dengan pesan yang jelas.
+  --------------------------------------------------------- */
+  let authMode = 'login';
+
+  function setAuthMode(mode) {
+    authMode = mode;
+    document.querySelectorAll('#auth-mode-segmented .segment').forEach((seg) => {
+      seg.classList.toggle('active', seg.dataset.authMode === mode);
+    });
+    document.getElementById('auth-username-wrap').hidden = mode !== 'register';
+    document.getElementById('auth-submit-btn').textContent = mode === 'register' ? 'Daftar' : 'Masuk';
+    document.getElementById('auth-error').textContent = '';
+  }
+
+  function updateAkunUI(user) {
+    const authCard = document.getElementById('akun-auth-card');
+    const profileCard = document.getElementById('akun-profile-card');
+    const menuDesc = document.getElementById('akun-menu-desc');
+    if (user) {
+      authCard.hidden = true;
+      profileCard.hidden = false;
+      const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Pengguna');
+      document.getElementById('akun-profile-name').textContent = name;
+      document.getElementById('akun-profile-email').textContent = user.email || '';
+      document.getElementById('akun-avatar').textContent = name.charAt(0).toUpperCase();
+      if (menuDesc) menuDesc.textContent = `Masuk sebagai ${name}`;
+    } else {
+      authCard.hidden = false;
+      profileCard.hidden = true;
+      if (menuDesc) menuDesc.textContent = 'Masuk untuk menyimpan data ke cloud';
+    }
+  }
+
+  async function handleAuthSubmit(e) {
+    e.preventDefault();
+    const errorEl = document.getElementById('auth-error');
+    errorEl.textContent = '';
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const username = document.getElementById('auth-username').value.trim();
+    const submitBtn = document.getElementById('auth-submit-btn');
+    submitBtn.disabled = true;
+    try {
+      if (authMode === 'register') {
+        await CloudSync.register(username, email, password);
+        showToast('Akun berhasil dibuat.');
+      } else {
+        await CloudSync.login(email, password);
+        showToast('Berhasil masuk.');
+      }
+      document.getElementById('form-auth').reset();
+    } catch (err) {
+      errorEl.textContent = err.message;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    const errorEl = document.getElementById('auth-error');
+    errorEl.textContent = '';
+    try {
+      await CloudSync.loginWithGoogle();
+      showToast('Berhasil masuk dengan Google.');
+    } catch (err) {
+      errorEl.textContent = err.message;
+    }
+  }
+
+  async function handleSyncPush() {
+    const statusEl = document.getElementById('akun-sync-status');
+    statusEl.textContent = 'Menyinkronkan...';
+    try {
+      await CloudSync.pushData();
+      statusEl.textContent = 'Berhasil disinkronkan ke cloud barusan.';
+      showToast('Data berhasil disinkronkan ke cloud.');
+    } catch (err) {
+      statusEl.textContent = '';
+      showToast(err.message);
+    }
+  }
+
+  async function handleSyncPull() {
+    askConfirm('Data di perangkat ini akan ditimpa dengan cadangan dari cloud. Lanjutkan?', async () => {
+      const statusEl = document.getElementById('akun-sync-status');
+      statusEl.textContent = 'Memulihkan...';
+      try {
+        await CloudSync.pullData();
+        await reloadAll();
+        renderAll();
+        statusEl.textContent = 'Berhasil dipulihkan dari cloud barusan.';
+        showToast('Data berhasil dipulihkan dari cloud.');
+      } catch (err) {
+        statusEl.textContent = '';
+        showToast(err.message);
+      }
+    });
+  }
+
+  function bindAkun() {
+    document.querySelectorAll('#auth-mode-segmented .segment').forEach((seg) => {
+      seg.addEventListener('click', () => setAuthMode(seg.dataset.authMode));
+    });
+    document.getElementById('form-auth').addEventListener('submit', handleAuthSubmit);
+    document.getElementById('btn-google-signin').addEventListener('click', handleGoogleSignIn);
+    document.getElementById('btn-sync-push').addEventListener('click', handleSyncPush);
+    document.getElementById('btn-sync-pull').addEventListener('click', handleSyncPull);
+    document.getElementById('btn-akun-logout').addEventListener('click', async () => {
+      await CloudSync.logout();
+      showToast('Berhasil keluar.');
+    });
+    document.getElementById('btn-open-pin-config').addEventListener('click', () => openModal('modal-pin-config'));
+
+    if (window.CloudSync) {
+      CloudSync.onAuthChange(updateAkunUI);
+    } else {
+      updateAkunUI(null);
+    }
+  }
+
+  /* ---------------------------------------------------------
      DATA LOADING
   --------------------------------------------------------- */
   async function reloadAll() {
@@ -1874,6 +1998,7 @@
     bindGoal();
     bindKategori();
     bindAnggaran();
+    bindAkun();
     bindPengaturan();
     bindModalDismiss();
     bindConfirmModal();

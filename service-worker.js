@@ -5,12 +5,14 @@
    Data tetap disimpan di IndexedDB, bukan di service worker ini.
    ============================================================ */
 
-const CACHE_NAME = 'bukukas-cache-v1';
+const CACHE_NAME = 'bukukas-cache-v2';
 const APP_SHELL = [
   './index.html',
   './style.css',
   './script.js',
   './database.js',
+  './firebase-config.js',
+  './cloud-sync.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
