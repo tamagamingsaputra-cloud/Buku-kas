@@ -19,6 +19,16 @@
 </head>
 <body>
 
+<!-- ===================== SPLASH SCREEN OVERLAY ===================== -->
+<div id="splash-overlay" class="splash-overlay">
+  <iframe 
+    id="splash-screen-frame" 
+    src="splash-screen.html" 
+    style="width: 100%; height: 100%; border: none; background: transparent;"
+    allow="autoplay"
+  ></iframe>
+</div>
+
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <!-- ===================== LAYAR KUNCI PIN ===================== -->
@@ -69,6 +79,51 @@
   </header>
 
   <!-- ===================== MAIN VIEWS ===================== -->
+  <!-- ===================== LOGIN SCREEN (Gate) ===================== -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-container">
+      <div class="login-header">
+        <h1 class="login-title">Buku Kas</h1>
+        <p class="login-subtitle">Manajemen Keuangan Pribadi</p>
+      </div>
+
+      <div class="login-card">
+        <div class="segmented login-segmented" id="auth-mode-segmented-login">
+          <button type="button" class="segment active" data-auth-mode="login">Masuk</button>
+          <button type="button" class="segment" data-auth-mode="register">Daftar</button>
+        </div>
+
+        <form id="form-auth-login" class="login-form">
+          <label class="field" id="auth-username-wrap-login" hidden>
+            <span class="field-label">Username</span>
+            <input type="text" id="auth-username-login" placeholder="Nama pengguna" maxlength="24" autocomplete="username" />
+          </label>
+          <label class="field">
+            <span class="field-label">Email</span>
+            <input type="email" id="auth-email-login" placeholder="nama@email.com" required autocomplete="email" />
+          </label>
+          <label class="field">
+            <span class="field-label">Password</span>
+            <input type="password" id="auth-password-login" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="current-password" />
+          </label>
+          <p class="auth-error" id="auth-error-login"></p>
+          <button type="submit" class="btn-primary" id="auth-submit-btn-login" style="width:100%;">Masuk</button>
+        </form>
+
+        <div class="auth-divider"><span>atau</span></div>
+
+        <button type="button" class="btn-google" id="btn-google-signin-login">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.92l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.29v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29v-3.1H1.29A12 12 0 0 0 0 12c0 1.93.46 3.76 1.29 5.39z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.78l3.44-3.44C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.29 6.61l4 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg>
+          Lanjutkan dengan Google
+        </button>
+
+        <p class="login-footer-hint">Fitur login ini membutuhkan setup Firebase. Lihat README-FIREBASE.md untuk panduan.</p>
+      </div>
+
+      <p class="login-offline-hint">💡 Tanpa login, Buku Kas tetap 100% berfungsi offline. Tombol login di atas bersifat opsional.</p>
+    </div>
+  </div>
+
   <main class="app-main" id="app-main">
 
     <!-- ---------- DASHBOARD ---------- -->

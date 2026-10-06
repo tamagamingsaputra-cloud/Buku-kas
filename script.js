@@ -434,12 +434,45 @@
   }
 
   /* ---------------------------------------------------------
+     SPLASH SCREEN — show on first load, hide after animation
+  --------------------------------------------------------- */
+  function hideSplashScreen() {
+    const splash = document.getElementById('splash-overlay');
+    if (splash) {
+      splash.classList.add('hidden');
+    }
+  }
+
+  /* ---------------------------------------------------------
+     LOGIN SCREEN GATE — cek auth saat load, show/hide login screen
+  --------------------------------------------------------- */
+  function loginScreenGate(user) {
+    const loginScreen = document.getElementById('login-screen');
+    const appMain = document.getElementById('app-main');
+    const splash = document.getElementById('splash-overlay');
+
+    if (user) {
+      // Sudah login: sembunyikan login screen dan splash, tampilkan app
+      if (splash) splash.classList.add('hidden');
+      loginScreen.classList.add('hidden');
+      appMain.style.display = 'block';
+      switchView('dashboard');
+    } else {
+      // Belum login: hide splash, tampilkan login screen, sembunyikan app
+      if (splash) splash.classList.add('hidden');
+      loginScreen.classList.remove('hidden');
+      appMain.style.display = 'none';
+    }
+  }
+
+  /* ---------------------------------------------------------
      AKUN — login/daftar (email+password), Google sign-in, dan
      sinkronisasi cadangan ke cloud lewat cloud-sync.js.
      Seluruhnya OPSIONAL: jika firebase-config.js belum diisi,
      CloudSync akan menolak dengan pesan yang jelas.
   --------------------------------------------------------- */
   let authMode = 'login';
+  let authModeLogin = 'login'; // Untuk login screen (halaman pertama)
 
   function setAuthMode(mode) {
     authMode = mode;
@@ -449,6 +482,16 @@
     document.getElementById('auth-username-wrap').hidden = mode !== 'register';
     document.getElementById('auth-submit-btn').textContent = mode === 'register' ? 'Daftar' : 'Masuk';
     document.getElementById('auth-error').textContent = '';
+  }
+
+  function setAuthModeLogin(mode) {
+    authModeLogin = mode;
+    document.querySelectorAll('#auth-mode-segmented-login .segment').forEach((seg) => {
+      seg.classList.toggle('active', seg.dataset.authMode === mode);
+    });
+    document.getElementById('auth-username-wrap-login').hidden = mode !== 'register';
+    document.getElementById('auth-submit-btn-login').textContent = mode === 'register' ? 'Daftar' : 'Masuk';
+    document.getElementById('auth-error-login').textContent = '';
   }
 
   function updateAkunUI(user) {
@@ -495,8 +538,44 @@
     }
   }
 
+  async function handleAuthSubmitLogin(e) {
+    e.preventDefault();
+    const errorEl = document.getElementById('auth-error-login');
+    errorEl.textContent = '';
+    const email = document.getElementById('auth-email-login').value.trim();
+    const password = document.getElementById('auth-password-login').value;
+    const username = document.getElementById('auth-username-login').value.trim();
+    const submitBtn = document.getElementById('auth-submit-btn-login');
+    submitBtn.disabled = true;
+    try {
+      if (authModeLogin === 'register') {
+        await CloudSync.register(username, email, password);
+        showToast('Akun berhasil dibuat.');
+      } else {
+        await CloudSync.login(email, password);
+        showToast('Berhasil masuk.');
+      }
+      document.getElementById('form-auth-login').reset();
+    } catch (err) {
+      errorEl.textContent = err.message;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
+
   async function handleGoogleSignIn() {
     const errorEl = document.getElementById('auth-error');
+    errorEl.textContent = '';
+    try {
+      await CloudSync.loginWithGoogle();
+      showToast('Berhasil masuk dengan Google.');
+    } catch (err) {
+      errorEl.textContent = err.message;
+    }
+  }
+
+  async function handleGoogleSignInLogin() {
+    const errorEl = document.getElementById('auth-error-login');
     errorEl.textContent = '';
     try {
       await CloudSync.loginWithGoogle();
@@ -537,6 +616,14 @@
   }
 
   function bindAkun() {
+    // Binding untuk login screen (halaman pertama)
+    document.querySelectorAll('#auth-mode-segmented-login .segment').forEach((seg) => {
+      seg.addEventListener('click', () => setAuthModeLogin(seg.dataset.authMode));
+    });
+    document.getElementById('form-auth-login').addEventListener('submit', handleAuthSubmitLogin);
+    document.getElementById('btn-google-signin-login').addEventListener('click', handleGoogleSignInLogin);
+
+    // Binding untuk Akun view (dalam app)
     document.querySelectorAll('#auth-mode-segmented .segment').forEach((seg) => {
       seg.addEventListener('click', () => setAuthMode(seg.dataset.authMode));
     });
@@ -545,15 +632,21 @@
     document.getElementById('btn-sync-push').addEventListener('click', handleSyncPush);
     document.getElementById('btn-sync-pull').addEventListener('click', handleSyncPull);
     document.getElementById('btn-akun-logout').addEventListener('click', async () => {
-      await CloudSync.logout();
-      showToast('Berhasil keluar.');
+      askConfirm('Keluar dari akun ini?', async () => {
+        await CloudSync.logout();
+        showToast('Berhasil keluar.');
+      });
     });
     document.getElementById('btn-open-pin-config').addEventListener('click', () => openModal('modal-pin-config'));
 
     if (window.CloudSync) {
-      CloudSync.onAuthChange(updateAkunUI);
+      CloudSync.onAuthChange((user) => {
+        updateAkunUI(user);
+        loginScreenGate(user);
+      });
     } else {
       updateAkunUI(null);
+      loginScreenGate(null);
     }
   }
 
@@ -1990,6 +2083,18 @@
     await DB.init();
     await reloadAll();
 
+    // Sembunyikan app-main dulu, let loginScreenGate show it
+    document.getElementById('app-main').style.display = 'none';
+
+    // Schedule splash screen to hide after animation completes (6.5s)
+    // Jika sudah login, loginScreenGate akan hide splash lebih cepat
+    setTimeout(() => {
+      const splash = document.getElementById('splash-overlay');
+      if (splash && !splash.classList.contains('hidden')) {
+        splash.classList.add('hidden');
+      }
+    }, 6500);
+
     bindNav();
     bindDashboard();
     bindTransaksi();
@@ -1998,7 +2103,7 @@
     bindGoal();
     bindKategori();
     bindAnggaran();
-    bindAkun();
+    bindAkun(); // This sets up auth listener dan loginScreenGate
     bindPengaturan();
     bindModalDismiss();
     bindConfirmModal();
@@ -2006,7 +2111,7 @@
     bindSecuritySettings();
     updateSettingsLockUI();
 
-    switchView('dashboard');
+    // Jangan switchView dulu, tunggu loginScreenGate set user state
 
     const security = getSecurity();
     if (security.enabled) {

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buku Kas - Loading</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f5f5 0%, #fffbf7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .splash-container {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      height: 100vh;
+      background: linear-gradient(135deg, #f5f5f5 0%, #fffbf7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ===================== FRAME 1-2: Dompet Floating & Uang Keluar ===================== */
+    .frame-wallet-section {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      animation: fadeOutFrame1 0.5s ease-in forwards;
+      animation-delay: 3s;
+    }
+
+    @keyframes fadeOutFrame1 {
+      to { opacity: 0; }
+    }
+
+    .wallet-container {
+      position: relative;
+      width: 180px;
+      height: 140px;
+      animation: floatWallet 3s cubic-bezier(0.4, 0.0, 0.6, 1) forwards;
+    }
+
+    @keyframes floatWallet {
+      0% {
+        transform: translateY(10px);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    svg.wallet-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.1));
+    }
+
+    /* Uang Keluar - 3 lembar */
+    .money {
+      position: absolute;
+      width: 60px;
+      height: 36px;
+      left: 60px;
+      top: 60px;
+      opacity: 0;
+    }
+
+    .money:nth-child(1) {
+      animation: moneyFly 1.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+      animation-delay: 1.5s;
+    }
+    .money:nth-child(2) {
+      animation: moneyFly 1.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+      animation-delay: 1.7s;
+    }
+    .money:nth-child(3) {
+      animation: moneyFly 1.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+      animation-delay: 1.9s;
+    }
+
+    @keyframes moneyFly {
+      0% {
+        transform: translateX(0) translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(80px) translateY(-100px) rotate(-15deg);
+        opacity: 1;
+      }
+    }
+
+    svg.money-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .money-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 12px;
+      font-weight: 700;
+      color: #1a472a;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===================== FRAME 3: Zoom & Fade ===================== */
+    .frame-transition-zoom {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      animation: zoomFadeIn 1s ease-out forwards;
+      animation-delay: 3s;
+    }
+
+    @keyframes zoomFadeIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* ===================== FRAME 4: Login Form dengan Coin Rain ===================== */
+    .frame-login {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      opacity: 0;
+      animation: fadeInFrame4 0.4s ease-out forwards;
+      animation-delay: 4s;
+      padding: 20px;
+    }
+
+    @keyframes fadeInFrame4 {
+      to { opacity: 1; }
+    }
+
+    .coin-rain-area {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      pointer-events: none;
+    }
+
+    .coin, .money-rain {
+      position: absolute;
+      opacity: 0;
+    }
+
+    /* Coin rain animation */
+    @keyframes coinFall {
+      0% {
+        transform: translateY(-60px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(280px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Money bill rain animation */
+    @keyframes moneyBillFall {
+      0% {
+        transform: translateY(-80px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(320px) rotate(-20deg);
+        opacity: 0;
+      }
+    }
+
+    .login-form-box {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 340px;
+      z-index: 10;
+    }
+
+    .login-form-box h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a472a;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .login-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .login-input-group input {
+      padding: 12px 14px;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #f9f9f9;
+      transition: all 0.2s;
+    }
+
+    .login-input-group input:focus {
+      outline: none;
+      border-color: #4dd9c4;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(77, 217, 196, 0.1);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #4dd9c4 0%, #2db8a3 100%);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(77, 217, 196, 0.3);
+    }
+
+    /* ===================== FRAME 5: Black Screen Audio Wave ===================== */
+    .frame-success {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeInSuccess 0.3s ease-out forwards;
+      animation-delay: 5.5s;
+    }
+
+    @keyframes fadeInSuccess {
+      to { opacity: 1; }
+    }
+
+    .audio-wave {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .wave-bar {
+      width: 4px;
+      height: 20px;
+      background: #4dd9c4;
+      border-radius: 2px;
+      animation: wavePulse 0.6s cubic-bezier(0.4, 0.0, 0.6, 1) infinite;
+    }
+
+    .wave-bar:nth-child(1) { animation-delay: -0.4s; }
+    .wave-bar:nth-child(2) { animation-delay: -0.2s; }
+    .wave-bar:nth-child(3) { animation-delay: 0s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+    @keyframes wavePulse {
+      0%, 100% {
+        height: 20px;
+      }
+      50% {
+        height: 50px;
+      }
+    }
+
+    /* ===================== SFX Indicators ===================== */
+    .sfx-indicator {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      background: rgba(77, 217, 196, 0.2);
+      border: 2px solid #4dd9c4;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sfx-indicator.playing {
+      animation: sfxPulse 0.4s ease-out forwards;
+    }
+
+    @keyframes sfxPulse {
+      0% {
+        opacity: 1;
+        transform: scale(0.8);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.4);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .login-form-box {
+        padding: 24px;
+      }
+      .login-form-box h2 {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-container">
+    <!-- FRAME 1-2: Dompet & Uang Keluar -->
+    <div class="frame-wallet-section">
+      <div class="wallet-container">
+        <!-- SVG Dompet -->
+        <svg class="wallet-svg" viewBox="0 0 180 140" xmlns="http://www.w3.org/2000/svg">
+          <!-- Dompet Body -->
+          <rect x="20" y="30" width="140" height="85" rx="12" fill="#4dd9c4" stroke="#2db8a3" stroke-width="2"/>
+          <!-- Dompet Lid/Top -->
+          <ellipse cx="90" cy="30" rx="70" ry="18" fill="#2db8a3" stroke="#1a472a" stroke-width="2"/>
+          <!-- Clasp -->
+          <circle cx="90" cy="72" r="8" fill="#1a472a" stroke="#ffffff" stroke-width="2"/>
+          <!-- Stitching line -->
+          <line x1="30" y1="50" x2="150" y2="50" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>
+        </svg>
+
+        <!-- 3 Lembar Uang Keluar -->
+        <div class="money">
+          <svg class="money-svg" viewBox="0 0 60 36" xmlns="http://www.w3.org/2000/svg">
+            <rect width="60" height="36" rx="4" fill="#5ded9f" stroke="#2db8a3" stroke-width="1.5"/>
+            <circle cx="30" cy="18" r="8" fill="none" stroke="#1a472a" stroke-width="1.5"/>
+            <text x="30" y="22" font-size="10" font-weight="700" fill="#1a472a" text-anchor="middle">$</text>
+          </svg>
+        </div>
+        <div class="money">
+          <svg class="money-svg" viewBox="0 0 60 36" xmlns="http://www.w3.org/2000/svg">
+            <rect width="60" height="36" rx="4" fill="#5ded9f" stroke="#2db8a3" stroke-width="1.5"/>
+            <circle cx="30" cy="18" r="8" fill="none" stroke="#1a472a" stroke-width="1.5"/>
+            <text x="30" y="22" font-size="10" font-weight="700" fill="#1a472a" text-anchor="middle">$</text>
+          </svg>
+        </div>
+        <div class="money">
+          <svg class="money-svg" viewBox="0 0 60 36" xmlns="http://www.w3.org/2000/svg">
+            <rect width="60" height="36" rx="4" fill="#5ded9f" stroke="#2db8a3" stroke-width="1.5"/>
+            <circle cx="30" cy="18" r="8" fill="none" stroke="#1a472a" stroke-width="1.5"/>
+            <text x="30" y="22" font-size="10" font-weight="700" fill="#1a472a" text-anchor="middle">$</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRAME 3: Zoom Transition (empty, visual only) -->
+    <div class="frame-transition-zoom"></div>
+
+    <!-- FRAME 4: Login Form dengan Coin Rain -->
+    <div class="frame-login">
+      <div class="coin-rain-area" id="coinRainArea"></div>
+
+      <div class="login-form-box">
+        <h2>Masuk ke Akun Anda</h2>
+        <div class="login-input-group">
+          <input type="email" placeholder="Email" disabled />
+          <input type="password" placeholder="Password" disabled />
+        </div>
+        <button class="login-btn" disabled>Masuk</button>
+      </div>
+    </div>
+
+    <!-- FRAME 5: Black Screen Audio Wave -->
+    <div class="frame-success">
+      <div class="audio-wave">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    </div>
+
+    <!-- SFX Indicator -->
+    <div class="sfx-indicator">🔊</div>
+  </div>
+
+  <script>
+    /* ===================== COIN & MONEY RAIN GENERATOR ===================== */
+    function generateCoinRain() {
+      const rainArea = document.getElementById('coinRainArea');
+      if (!rainArea) return;
+
+      const createRainItem = (type, delay) => {
+        const item = document.createElement('div');
+        item.className = type === 'coin' ? 'coin' : 'money-rain';
+        
+        if (type === 'coin') {
+          item.innerHTML = `
+            <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="14" cy="14" r="13" fill="#ffd700" stroke="#d4a500" stroke-width="1.5"/>
+              <circle cx="14" cy="14" r="11" fill="none" stroke="#d4a500" stroke-width="1"/>
+              <text x="14" y="17" font-size="12" font-weight="700" fill="#d4a500" text-anchor="middle">$</text>
+            </svg>
+          `;
+        } else {
+          item.innerHTML = `
+            <svg width="36" height="24" viewBox="0 0 36 24" xmlns="http://www.w3.org/2000/svg">
+              <rect width="36" height="24" rx="3" fill="#4dd9c4" stroke="#2db8a3" stroke-width="1"/>
+              <circle cx="18" cy="12" r="6" fill="none" stroke="#1a472a" stroke-width="1"/>
+              <text x="18" y="15" font-size="8" font-weight="700" fill="#1a472a" text-anchor="middle">$</text>
+            </svg>
+          `;
+        }
+
+        const left = Math.random() * rainArea.offsetWidth;
+        item.style.left = left + 'px';
+        item.style.top = '-60px';
+        item.style.animationName = type === 'coin' ? 'coinFall' : 'moneyBillFall';
+        item.style.animationDuration = (2.5 + Math.random() * 1) + 's';
+        item.style.animationDelay = delay + 's';
+        item.style.animationFillMode = 'forwards';
+
+        rainArea.appendChild(item);
+
+        // Remove after animation
+        setTimeout(() => item.remove(), (2.5 + 1 + delay) * 1000);
+      };
+
+      // Generate continuous rain during frame 4 (1.5s duration, starting at 4s into animation)
+      let rainCount = 0;
+      const rainInterval = setInterval(() => {
+        if (rainCount >= 8) {
+          clearInterval(rainInterval);
+          return;
+        }
+        createRainItem(rainCount % 2 === 0 ? 'coin' : 'money', rainCount * 0.25);
+        rainCount++;
+      }, 250);
+    }
+
+    /* ===================== SFX (Web Audio API Fallback) ===================== */
+    function playSFX(type, duration = 0.2) {
+      const indicator = document.querySelector('.sfx-indicator');
+      if (indicator) {
+        indicator.classList.add('playing');
+        setTimeout(() => indicator.classList.remove('playing'), 400);
+      }
+
+      // Attempt to play sound using Web Audio API
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        if (type === 'click') {
+          // Pop/click sound
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.frequency.setValueAtTime(600, audioContext.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+          osc.start(audioContext.currentTime);
+          osc.stop(audioContext.currentTime + 0.1);
+        } else if (type === 'ching') {
+          // Metal/ching sound
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.frequency.setValueAtTime(1200, audioContext.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + duration);
+          gain.gain.setValueAtTime(0.25, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0, audioContext.currentTime + duration);
+          osc.start(audioContext.currentTime);
+          osc.stop(audioContext.currentTime + duration);
+        } else if (type === 'whoosh') {
+          // Whoosh sound
+          const noise = audioContext.createBufferSource();
+          const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < buffer.length; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+          noise.buffer = buffer;
+          const filter = audioContext.createBiquadFilter();
+          const gain = audioContext.createGain();
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(audioContext.destination);
+          filter.type = 'highpass';
+          filter.frequency.setValueAtTime(1500, audioContext.currentTime);
+          gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+          noise.start(audioContext.currentTime);
+          noise.stop(audioContext.currentTime + duration);
+        } else if (type === 'coins-loop') {
+          // Light coin clinking loop (short burst)
+          for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+              const osc = audioContext.createOscillator();
+              const gain = audioContext.createGain();
+              osc.connect(gain);
+              gain.connect(audioContext.destination);
+              osc.frequency.setValueAtTime(1400 - i * 200, audioContext.currentTime);
+              osc.frequency.exponentialRampToValueAtTime(1000 - i * 200, audioContext.currentTime + 0.1);
+              gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0, audioContext.currentTime + 0.1);
+              osc.start(audioContext.currentTime);
+              osc.stop(audioContext.currentTime + 0.1);
+            }, i * 120);
+          }
+        } else if (type === 'thump') {
+          // Thump/bass confirmation sound
+          const osc = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.frequency.setValueAtTime(150, audioContext.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.3);
+          gain.gain.setValueAtTime(0.4, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0, audioContext.currentTime + 0.3);
+          osc.start(audioContext.currentTime);
+          osc.stop(audioContext.currentTime + 0.3);
+        }
+      } catch (e) {
+        console.log('Web Audio API not available, visual feedback only');
+      }
+    }
+
+    /* ===================== ANIMATION TIMELINE ===================== */
+    function startSplashAnimation() {
+      // 0-1.5s: Dompet floating
+      setTimeout(() => playSFX('click'), 100);
+
+      // 1.5-3s: Uang keluar + ching sound
+      setTimeout(() => playSFX('ching'), 1500);
+      setTimeout(() => playSFX('ching'), 1700);
+      setTimeout(() => playSFX('ching'), 1900);
+
+      // 3-4s: Zoom transition
+      setTimeout(() => playSFX('whoosh'), 3000);
+
+      // 4-5.5s: Login form + coin rain
+      setTimeout(() => {
+        playSFX('coins-loop');
+        generateCoinRain();
+      }, 4000);
+
+      // 5.5-6.5s: Black screen success
+      setTimeout(() => {
+        playSFX('thump');
+        playSFX('whoosh');
+      }, 5500);
+
+      // 6.5s: Redirect to main app
+      setTimeout(() => {
+        // Redirect atau close splash screen
+        // window.location.href = '#dashboard'; atau close overlay
+        console.log('Splash animation complete - redirect to app');
+      }, 6500);
+    }
+
+    // Start animation on load
+    window.addEventListener('load', startSplashAnimation);
+  </script>
+</body>
+</html>
