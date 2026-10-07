@@ -750,7 +750,7 @@ input, select, textarea { font-family: inherit; }
   opacity: 0;
   pointer-events: none;
   transition: opacity .25s ease, transform .25s ease;
-  z-index: 100;
+  z-index: 300;
   box-shadow: var(--shadow);
   max-width: 88%;
   text-align: center;
@@ -1081,109 +1081,213 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .akun-profile-name { font-weight: 600; font-size: 15px; }
 .akun-profile-email { font-size: 12.5px; color: var(--text-faint); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ===================== LOGIN SCREEN (Halaman pertama) ===================== */
-.login-screen {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(135deg, var(--bg) 0%, var(--bg-soft) 100%);
+/* ============================================================
+   SPLASH 2 DETIK — dompet mint + uang kertas (gaya referensi)
+   Palet: mint #7ED9B4, navy #16243B, soft white
+   ============================================================ */
+.splash-overlay {
+  position: fixed; inset: 0; z-index: 99999;
   display: flex; align-items: center; justify-content: center;
-  z-index: 9999;
-  overflow-y: auto;
-  padding: 20px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 36%, #FFFFFF 0%, #EAF9F2 55%, #D5F2E4 100%);
+}
+.splash-overlay.leaving { animation: spFade .45s ease-in forwards; }
+.splash-overlay.hidden { display: none; }
+.splash-overlay.leaving .splash-stage { animation: spZoom .45s cubic-bezier(.5, 0, .8, .4) forwards; }
+@keyframes spFade { to { opacity: 0; } }
+@keyframes spZoom { to { transform: scale(1.45); } }
+
+.splash-stage {
+  display: flex; flex-direction: column; align-items: center;
+  width: 100%; max-width: 380px; padding: 24px; text-align: center;
+}
+.splash-art {
+  position: relative; width: min(66vw, 270px); aspect-ratio: 260 / 220;
+  animation: spFloat 1.4s ease-in-out .45s both;
+}
+@keyframes spFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+.splash-ring {
+  position: absolute; left: 50%; top: 52%; width: 92%; aspect-ratio: 1;
+  margin: -46% 0 0 -46%;
+  border: 2px solid rgba(63, 191, 147, .5); border-radius: 50%;
+  opacity: 0; animation: spRing 1s ease-out .6s both;
+}
+.splash-ring.r2 { animation-delay: .72s; }
+.splash-ring.r3 { animation-delay: .84s; }
+@keyframes spRing { 0% { transform: scale(.45); opacity: .7; } 100% { transform: scale(1.35); opacity: 0; } }
+
+.splash-wallet { position: relative; width: 100%; height: 100%; overflow: visible; }
+.sp-body, .sp-bill, .sp-spark { transform-box: fill-box; transform-origin: 50% 100%; }
+.sp-body { transform-origin: 50% 100%; animation: spPop .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+@keyframes spPop { 0% { transform: scale(.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+.sp-bill { animation-duration: .75s; animation-timing-function: cubic-bezier(.22, 1.25, .36, 1); animation-fill-mode: both; }
+.sp-bill-a { animation-name: spBillA; animation-delay: .62s; }
+.sp-bill-b { animation-name: spBillB; animation-delay: .72s; }
+.sp-bill-c { animation-name: spBillC; animation-delay: .82s; }
+@keyframes spBillA { 0% { transform: translateY(64px) rotate(0); } 100% { transform: translate(-8px, -26px) rotate(-8deg); } }
+@keyframes spBillB { 0% { transform: translateY(64px) rotate(0); } 100% { transform: translate(14px, -40px) rotate(7deg); } }
+@keyframes spBillC { 0% { transform: translateY(64px) rotate(0); } 100% { transform: translate(36px, -30px) rotate(20deg); } }
+
+.sp-spark { transform-origin: 50% 50%; animation: spSpark .45s ease-out both; }
+.sp-spark.s1 { animation-delay: .85s; } .sp-spark.s2 { animation-delay: .95s; }
+.sp-spark.s3 { animation-delay: 1.05s; } .sp-spark.s4 { animation-delay: .9s; }
+.sp-spark.s5 { animation-delay: 1.0s; }
+@keyframes spSpark { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+.splash-text { margin-top: 18px; }
+.splash-title, .splash-sub, .splash-desc { animation: spUp .4s ease-out both; }
+.splash-title { font-family: 'Fraunces', serif; font-size: 34px; font-weight: 700; color: #16243B; letter-spacing: -.5px; margin: 0; animation-delay: .75s; }
+.splash-sub { font-size: 15px; font-weight: 700; color: #14805C; margin: 4px 0 0; animation-delay: .9s; }
+.splash-desc { font-size: 13px; line-height: 1.55; color: #4A5B73; margin: 10px auto 0; max-width: 300px; animation-delay: 1.05s; }
+@keyframes spUp { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   HALAMAN LOGIN BARU — animasi koin & uang jatuh berulang
+   ============================================================ */
+.login-screen {
+  position: fixed; inset: 0; z-index: 150;
+  background: linear-gradient(170deg, #F7FDFA 0%, #E4F7EE 55%, #D3F0E2 100%);
+  color: #16243B; overflow: hidden;
 }
 .login-screen.hidden { display: none; }
 
-.login-container {
-  width: 100%; max-width: 420px;
+.lg-ambient { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.lg-amb {
+  position: absolute; top: 0; left: var(--x); width: var(--s); opacity: .2;
+  animation: lgAmbient var(--d) linear var(--delay) infinite;
+}
+.lg-amb svg { display: block; width: 100%; height: auto; }
+@keyframes lgAmbient {
+  0% { transform: translateY(-12vh) rotate(0); }
+  100% { transform: translateY(112vh) rotate(var(--r)); }
 }
 
-.login-header {
-  text-align: center; margin-bottom: 32px;
-}
-.login-title {
-  font-family: 'Fraunces', serif;
-  font-size: 44px; font-weight: 700;
-  color: var(--text);
-  margin: 0 0 6px;
-  letter-spacing: -1px;
-}
-.login-subtitle {
-  font-size: 13px; color: var(--text-faint);
-  margin: 0;
-  letter-spacing: .04em;
+.lg-scroll { position: absolute; inset: 0; overflow-y: auto; display: flex; -webkit-overflow-scrolling: touch; }
+.lg-wrap {
+  position: relative; margin: auto; width: 100%; max-width: 400px;
+  padding: max(20px, env(safe-area-inset-top)) 18px max(26px, env(safe-area-inset-bottom));
 }
 
-.login-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 28px;
-  box-shadow: var(--shadow);
-  margin-bottom: 20px;
+.lg-hero { position: relative; text-align: center; padding-top: 118px; margin-bottom: 16px; }
+.lg-drop { position: absolute; left: 0; right: 0; top: 0; height: 160px; pointer-events: none; }
+.lg-item {
+  position: absolute; top: 0; left: calc(50% + var(--x)); margin-left: -14px; width: 28px;
+  opacity: 0; animation: lgDrop var(--d) cubic-bezier(.4, 0, .9, .6) var(--delay) infinite;
 }
+.lg-item.bill { width: 40px; margin-left: -20px; }
+.lg-item svg { display: block; width: 100%; height: auto; }
+@keyframes lgDrop {
+  0% { transform: translateY(-10px) rotate(var(--r)); opacity: 0; }
+  12% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { transform: translateY(150px) rotate(calc(var(--r) * -1)) scale(.6); opacity: 0; }
+}
+.lg-wallet { position: relative; z-index: 2; width: 150px; height: auto; overflow: visible; animation: lgBob 3.2s ease-in-out infinite; }
+@keyframes lgBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.lg-bill { transform-box: fill-box; transform-origin: 50% 100%; animation: lgWiggle 3.2s ease-in-out infinite; }
+.lg-bill.b2 { animation-delay: -.5s; } .lg-bill.b3 { animation-delay: -1s; }
+@keyframes lgWiggle { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(3deg); } }
 
-.login-segmented {
-  margin-bottom: 24px;
-  background: var(--bg-soft);
-  padding: 4px;
-  border-radius: 14px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-}
-.login-segmented .segment {
-  padding: 10px;
-  border-radius: 12px;
-  border: none;
-  background: transparent;
-  color: var(--text-faint);
-  font-weight: 600; font-size: 14px;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-.login-segmented .segment.active {
-  background: var(--card);
-  color: var(--text);
-  box-shadow: var(--shadow-sm);
-}
+.lg-title { position: relative; z-index: 2; font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; letter-spacing: -.5px; margin: 6px 0 0; color: #16243B; }
+.lg-tag { position: relative; z-index: 2; font-size: 14px; font-weight: 700; color: #14805C; margin: 2px 0 0; }
 
-.login-form { margin-bottom: 18px; }
-.login-form .field { margin-bottom: 14px; }
-.login-form .field:last-of-type { margin-bottom: 0; }
-
-.login-footer-hint {
-  font-size: 11px; color: var(--text-faint);
-  text-align: center; margin: 0; margin-top: 14px;
-  line-height: 1.4;
+.lg-card {
+  position: relative; z-index: 2; background: #fff; border-radius: 26px; padding: 22px 20px 18px;
+  border: 1px solid rgba(22, 36, 59, .06); box-shadow: 0 18px 50px rgba(22, 36, 59, .12);
 }
+.lg-card-title { font-family: 'Fraunces', serif; font-size: 21px; font-weight: 700; margin: 0; text-align: center; color: #16243B; }
+.lg-card-sub { font-size: 12.5px; line-height: 1.5; color: #5B6C82; text-align: center; margin: 6px 0 0; }
 
-.login-offline-hint {
-  font-size: 12.5px; color: var(--text-faint);
-  text-align: center; margin: 0;
-  padding: 16px;
-  background: var(--bg-soft);
-  border-radius: 16px;
-  line-height: 1.5;
+.login-screen .lg-seg {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px;
+  background: #EAF3EF; border-radius: 14px; margin: 16px 0 16px;
 }
-
-/* Responsive untuk HP lebar penuh */
-@media (max-width: 360px) {
-  .login-container { max-width: 100%; }
-  .login-title { font-size: 36px; }
-  .login-card { padding: 20px; }
+.login-screen .lg-seg .segment {
+  border: 0; border-radius: 11px; padding: 10px 0; background: transparent; color: #5B6C82;
+  font: 700 14px 'Inter', sans-serif; cursor: pointer; transition: background .2s, color .2s, box-shadow .2s;
 }
+.login-screen .lg-seg .segment.active { background: #fff; color: #16243B; box-shadow: 0 2px 8px rgba(22, 36, 59, .12); }
 
-/* ===================== SPLASH OVERLAY (frame container) ===================== */
-.splash-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  width: 100%; height: 100%;
-  z-index: 99999;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+.lg-field { display: block; margin-bottom: 12px; }
+.lg-field[hidden] { display: none; }
+.lg-label { display: block; font-size: 12px; font-weight: 700; color: #4A5B73; margin: 0 0 6px 2px; }
+.lg-input-wrap {
+  display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 12px 0 14px;
+  background: #F3F8F6; border: 1.5px solid #DCE9E3; border-radius: 14px; transition: border-color .2s, box-shadow .2s, background .2s;
 }
-.splash-overlay.hidden { display: none; }
+.lg-input-wrap:focus-within { background: #fff; border-color: #3FBF93; box-shadow: 0 0 0 4px rgba(63, 191, 147, .18); }
+.lg-input-wrap > svg { width: 18px; height: 18px; flex-shrink: 0; color: #6B7C93; }
+.lg-input-wrap input {
+  all: unset; box-sizing: border-box; flex: 1; min-width: 0; height: 100%;
+  font: 500 16px 'Inter', sans-serif; color: #16243B;
+}
+.lg-input-wrap input::placeholder { color: #8FA0B5; }
+.lg-input-wrap input:-webkit-autofill { -webkit-box-shadow: 0 0 0 40px #F3F8F6 inset; -webkit-text-fill-color: #16243B; }
+.lg-eye { all: unset; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; color: #6B7C93; }
+.lg-eye:focus-visible { outline: 2px solid #3FBF93; }
+.lg-eye svg { width: 18px; height: 18px; }
 
-.splash-overlay iframe {
-  width: 100%;
-  height: 100%;
+.lg-card .auth-error { color: #C0392B; font-size: 12.5px; margin: 2px 2px 10px; }
+
+.lg-btn {
+  position: relative; overflow: hidden; width: 100%; height: 52px; border: 0; border-radius: 15px; cursor: pointer;
+  background: linear-gradient(135deg, #7ED9B4, #46C39A); color: #16243B;
+  font: 700 15.5px 'Inter', sans-serif; box-shadow: 0 10px 24px rgba(63, 191, 147, .35);
+  transition: transform .15s, opacity .2s;
+}
+.lg-btn:active { transform: scale(.98); }
+.lg-btn:disabled { opacity: .7; cursor: default; }
+.lg-btn::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .6), transparent);
+  transform: skewX(-18deg); animation: lgShine 3.2s ease-in-out infinite;
+}
+@keyframes lgShine { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+
+.lg-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; font-size: 12px; color: #8FA0B5; }
+.lg-divider::before, .lg-divider::after { content: ''; flex: 1; height: 1px; background: #E3EDE8; }
+.lg-google {
+  width: 100%; height: 50px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: #fff; color: #16243B; border: 1.5px solid #DCE9E3; border-radius: 14px; cursor: pointer;
+  font: 700 14.5px 'Inter', sans-serif; transition: background .2s;
+}
+.lg-google:hover { background: #F7FBF9; }
+.lg-guest {
+  all: unset; box-sizing: border-box; display: block; width: 100%; text-align: center; margin-top: 12px; padding: 8px 0;
+  font: 600 13.5px 'Inter', sans-serif; color: #14805C; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.lg-guest:focus-visible { outline: 2px solid #3FBF93; border-radius: 8px; }
+.lg-foot { position: relative; z-index: 2; margin: 14px 4px 0; text-align: center; font-size: 12px; line-height: 1.5; color: #5B6C82; }
+.lg-foot[hidden] { display: none; }
+
+/* ============================================================
+   TRANSISI SUKSES LOGIN — layar hitam + riak gelombang mint
+   ============================================================ */
+.login-success {
+  position: fixed; inset: 0; z-index: 160; display: none; align-items: center; justify-content: center;
+  background: #000; opacity: 0;
+}
+.login-success.show { display: flex; animation: lsIn .2s ease-out forwards; }
+.login-success.out { animation: lsOut .35s ease-in forwards; }
+@keyframes lsIn { to { opacity: 1; } }
+@keyframes lsOut { from { opacity: 1; } to { opacity: 0; } }
+.ls-ripple span {
+  position: absolute; left: 50%; top: 50%; width: 90px; height: 90px; margin: -45px 0 0 -45px;
+  border: 2px solid #5FD3A8; border-radius: 50%; opacity: 0; animation: lsRing 1s ease-out infinite;
+}
+.ls-ripple span:nth-child(2) { animation-delay: .2s; } .ls-ripple span:nth-child(3) { animation-delay: .4s; } .ls-ripple span:nth-child(4) { animation-delay: .6s; }
+@keyframes lsRing { 0% { transform: scale(.3); opacity: .9; } 100% { transform: scale(4.6); opacity: 0; } }
+.ls-wave { position: relative; display: flex; align-items: center; height: 70px; filter: drop-shadow(0 0 10px rgba(126, 217, 180, .7)); }
+.ls-wave i { width: 4px; height: 14px; margin: 0 3px; border-radius: 3px; background: #7ED9B4; animation: lsBar .55s ease-in-out infinite; }
+.ls-wave i:nth-child(1), .ls-wave i:nth-child(7) { animation-delay: 0s; --h: 26px; }
+.ls-wave i:nth-child(2), .ls-wave i:nth-child(6) { animation-delay: .08s; --h: 42px; }
+.ls-wave i:nth-child(3), .ls-wave i:nth-child(5) { animation-delay: .16s; --h: 58px; }
+.ls-wave i:nth-child(4) { animation-delay: .24s; --h: 68px; }
+@keyframes lsBar { 0%, 100% { height: 14px; } 50% { height: var(--h, 40px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-item, .lg-amb, .lg-bill, .lg-wallet, .lg-btn::after, .splash-art { animation: none; }
+  .lg-item, .lg-amb { display: none; }
 }

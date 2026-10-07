@@ -19,14 +19,52 @@
 </head>
 <body>
 
-<!-- ===================== SPLASH SCREEN OVERLAY ===================== -->
-<div id="splash-overlay" class="splash-overlay">
-  <iframe 
-    id="splash-screen-frame" 
-    src="splash-screen.html" 
-    style="width: 100%; height: 100%; border: none; background: transparent;"
-    allow="autoplay"
-  ></iframe>
+<!-- ===================== SPLASH (2 detik) ===================== -->
+<div id="splash-overlay" class="splash-overlay" aria-hidden="true">
+  <div class="splash-stage">
+    <div class="splash-art">
+      <span class="splash-ring r1"></span><span class="splash-ring r2"></span><span class="splash-ring r3"></span>
+      <svg class="splash-wallet" viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="#16243B" stroke-width="3" stroke-linecap="round">
+          <path class="sp-spark s1" d="M26 60l10 10M36 60L26 70"/>
+          <path class="sp-spark s2" stroke="#3FBF93" d="M222 36l10 10M232 36l-10 10"/>
+          <circle class="sp-spark s3" cx="48" cy="132" r="4" stroke="#3FBF93"/>
+          <circle class="sp-spark s4" cx="246" cy="92" r="4"/>
+          <circle class="sp-spark s5" cx="196" cy="18" r="3.5"/>
+        </g>
+        <g class="sp-body">
+        <rect x="40" y="92" width="190" height="114" rx="16" fill="#16243B"/>
+        <g class="sp-bill sp-bill-a">
+          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
+          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
+          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="94" cy="64" r="3" fill="#16243B"/><circle cx="166" cy="98" r="3" fill="#16243B"/>
+        </g>
+        <g class="sp-bill sp-bill-b">
+          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
+          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
+          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="94" cy="64" r="3" fill="#16243B"/><circle cx="166" cy="98" r="3" fill="#16243B"/>
+        </g>
+        <g class="sp-bill sp-bill-c">
+          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
+          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
+          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="94" cy="64" r="3" fill="#16243B"/><circle cx="166" cy="98" r="3" fill="#16243B"/>
+        </g>
+        <rect x="30" y="100" width="190" height="104" rx="16" fill="#7ED9B4" stroke="#16243B" stroke-width="5"/>
+        <path d="M48 120H198" stroke="#16243B" stroke-width="2.5" stroke-dasharray="7 6" stroke-linecap="round" opacity=".55"/>
+        <rect x="188" y="138" width="52" height="38" rx="11" fill="#A9EACB" stroke="#16243B" stroke-width="5"/>
+        <circle cx="209" cy="157" r="7" fill="#fff" stroke="#16243B" stroke-width="4"/>
+        </g>
+      </svg>
+    </div>
+    <div class="splash-text">
+      <h1 class="splash-title">Buku Kas</h1>
+      <p class="splash-sub">Kelola Uang Lebih Baik</p>
+      <p class="splash-desc">Catat pemasukan dan pengeluaran, atur anggaran, dan capai target tabunganmu &mdash; semua dalam satu aplikasi yang tetap bisa dipakai offline.</p>
+    </div>
+  </div>
 </div>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -79,50 +117,92 @@
   </header>
 
   <!-- ===================== MAIN VIEWS ===================== -->
-  <!-- ===================== LOGIN SCREEN (Gate) ===================== -->
-  <div id="login-screen" class="login-screen">
-    <div class="login-container">
-      <div class="login-header">
-        <h1 class="login-title">Buku Kas</h1>
-        <p class="login-subtitle">Manajemen Keuangan Pribadi</p>
+  <!-- ===================== LOGIN (halaman pertama) ===================== -->
+<div id="login-screen" class="login-screen hidden">
+  <div class="lg-ambient" id="lg-ambient" aria-hidden="true"></div>
+  <div class="lg-scroll">
+    <div class="lg-wrap">
+      <div class="lg-hero">
+        <div class="lg-drop" id="lg-drop" aria-hidden="true"></div>
+        <svg class="lg-wallet" viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="40" y="92" width="190" height="114" rx="16" fill="#16243B"/>
+          <g transform="translate(-8 -26) rotate(-8 130 110)"><g class="lg-bill b1">
+          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
+          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
+          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+        </g></g>
+          <g transform="translate(14 -40) rotate(7 130 110)"><g class="lg-bill b2">
+          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
+          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
+          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+        </g></g>
+          <g transform="translate(36 -30) rotate(20 130 110)"><g class="lg-bill b3">
+          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
+          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
+          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+        </g></g>
+          <rect x="30" y="100" width="190" height="104" rx="16" fill="#7ED9B4" stroke="#16243B" stroke-width="5"/>
+        <path d="M48 120H198" stroke="#16243B" stroke-width="2.5" stroke-dasharray="7 6" stroke-linecap="round" opacity=".55"/>
+        <rect x="188" y="138" width="52" height="38" rx="11" fill="#A9EACB" stroke="#16243B" stroke-width="5"/>
+        <circle cx="209" cy="157" r="7" fill="#fff" stroke="#16243B" stroke-width="4"/>
+        </svg>
+        <h1 class="lg-title">Buku Kas</h1>
+        <p class="lg-tag">Kelola Uang Lebih Baik</p>
       </div>
 
-      <div class="login-card">
-        <div class="segmented login-segmented" id="auth-mode-segmented-login">
+      <div class="lg-card">
+        <h2 class="lg-card-title" id="lg-card-title">Masuk ke Akun Anda</h2>
+        <p class="lg-card-sub" id="lg-card-sub">Data keuanganmu bisa dipulihkan di HP mana pun.</p>
+
+        <div class="lg-seg" id="auth-mode-segmented-login">
           <button type="button" class="segment active" data-auth-mode="login">Masuk</button>
           <button type="button" class="segment" data-auth-mode="register">Daftar</button>
         </div>
 
-        <form id="form-auth-login" class="login-form">
-          <label class="field" id="auth-username-wrap-login" hidden>
-            <span class="field-label">Username</span>
-            <input type="text" id="auth-username-login" placeholder="Nama pengguna" maxlength="24" autocomplete="username" />
+        <form id="form-auth-login" class="lg-form">
+          <label class="lg-field" id="auth-username-wrap-login" hidden>
+            <span class="lg-label">Username</span>
+            <span class="lg-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+              <input type="text" id="auth-username-login" placeholder="Nama pengguna" maxlength="24" autocomplete="username" />
+            </span>
           </label>
-          <label class="field">
-            <span class="field-label">Email</span>
-            <input type="email" id="auth-email-login" placeholder="nama@email.com" required autocomplete="email" />
+          <label class="lg-field">
+            <span class="lg-label">Email</span>
+            <span class="lg-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>
+              <input type="email" id="auth-email-login" placeholder="nama@email.com" required autocomplete="email" />
+            </span>
           </label>
-          <label class="field">
-            <span class="field-label">Password</span>
-            <input type="password" id="auth-password-login" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="current-password" />
+          <label class="lg-field">
+            <span class="lg-label">Password</span>
+            <span class="lg-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+              <input type="password" id="auth-password-login" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="current-password" />
+              <button type="button" class="lg-eye" id="lg-toggle-pass" aria-label="Tampilkan password">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </span>
           </label>
-          <p class="auth-error" id="auth-error-login"></p>
-          <button type="submit" class="btn-primary" id="auth-submit-btn-login" style="width:100%;">Masuk</button>
+          <p class="auth-error" id="auth-error-login" role="alert"></p>
+          <button type="submit" class="lg-btn" id="auth-submit-btn-login"><span class="lg-btn-label">Masuk</span></button>
         </form>
 
-        <div class="auth-divider"><span>atau</span></div>
-
-        <button type="button" class="btn-google" id="btn-google-signin-login">
-          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.92l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.29v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29v-3.1H1.29A12 12 0 0 0 0 12c0 1.93.46 3.76 1.29 5.39z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.78l3.44-3.44C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.29 6.61l4 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg>
-          Lanjutkan dengan Google
-        </button>
-
-        <p class="login-footer-hint">Fitur login ini membutuhkan setup Firebase. Lihat README-FIREBASE.md untuk panduan.</p>
+        <div class="lg-divider"><span>atau</span></div>
+        <button type="button" class="lg-google" id="btn-google-signin-login"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.92l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.29v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29v-3.1H1.29A12 12 0 0 0 0 12c0 1.93.46 3.76 1.29 5.39z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.78l3.44-3.44C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.29 6.61l4 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg>Lanjutkan dengan Google</button>
+        <button type="button" class="lg-guest" id="lg-guest-btn">Lanjutkan tanpa akun</button>
       </div>
 
-      <p class="login-offline-hint">💡 Tanpa login, Buku Kas tetap 100% berfungsi offline. Tombol login di atas bersifat opsional.</p>
+      <p class="lg-foot" id="lg-config-note" hidden>Login cloud belum dikonfigurasi di versi ini. Kamu tetap bisa memakai Buku Kas tanpa akun.</p>
     </div>
   </div>
+</div>
+
+<!-- Transisi sukses login: layar hitam + riak gelombang -->
+<div id="login-success" class="login-success" aria-hidden="true">
+  <div class="ls-ripple"><span></span><span></span><span></span><span></span></div>
+  <div class="ls-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</div>
 
   <main class="app-main" id="app-main">
 

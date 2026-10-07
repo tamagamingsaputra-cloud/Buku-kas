@@ -434,34 +434,197 @@
   }
 
   /* ---------------------------------------------------------
-     SPLASH SCREEN — show on first load, hide after animation
+     SFX — efek suara sederhana via Web Audio (tanpa file audio).
+     Browser baru mengizinkan suara setelah pengguna menyentuh layar,
+     jadi suara splash bisa saja senyap; suara login tetap jalan.
   --------------------------------------------------------- */
-  function hideSplashScreen() {
-    const splash = document.getElementById('splash-overlay');
-    if (splash) {
-      splash.classList.add('hidden');
-    }
+  let audioCtx = null;
+  function getAudio() {
+    try {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        audioCtx = new AC();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+      return audioCtx.state === 'running' ? audioCtx : null;
+    } catch (e) { return null; }
+  }
+  ['pointerdown', 'keydown'].forEach((ev) => {
+    document.addEventListener(ev, function unlock() {
+      getAudio();
+      document.removeEventListener(ev, unlock);
+    }, { passive: true });
+  });
+
+  function sfxTone(ctx, t0, f0, f1, dur, vol, type) {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(f0, t0);
+    if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t0); o.stop(t0 + dur + 0.03);
+  }
+  function sfxNoise(ctx, t0, dur, vol, f0, f1) {
+    const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 0.9;
+    filter.frequency.setValueAtTime(f0, t0);
+    filter.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + dur * 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+    src.start(t0); src.stop(t0 + dur + 0.03);
+  }
+  function sfx(name) {
+    const ctx = getAudio();
+    if (!ctx) return;
+    try {
+      const t = ctx.currentTime + 0.01;
+      if (name === 'click') sfxTone(ctx, t, 900, 520, 0.09, 0.14, 'triangle');
+      else if (name === 'paper') sfxNoise(ctx, t, 0.28, 0.1, 2400, 5200);
+      else if (name === 'ching') { sfxTone(ctx, t, 1318, 1318, 0.22, 0.12); sfxTone(ctx, t + 0.09, 1760, 1760, 0.3, 0.1); }
+      else if (name === 'whoosh') sfxNoise(ctx, t, 0.45, 0.12, 400, 2600);
+      else if (name === 'thump') { sfxTone(ctx, t, 150, 55, 0.35, 0.4); sfxTone(ctx, t + 0.12, 1318, 1318, 0.25, 0.08); }
+    } catch (e) { /* suara hanya pemanis */ }
   }
 
   /* ---------------------------------------------------------
-     LOGIN SCREEN GATE — cek auth saat load, show/hide login screen
+     SPLASH (2 detik) + GERBANG LOGIN
+     Alur: splash -> (belum login) halaman login yang beranimasi
+     terus -> berhasil masuk -> layar hitam + riak -> dashboard.
+     Sudah login / mode tanpa akun -> splash langsung ke dashboard.
   --------------------------------------------------------- */
-  function loginScreenGate(user) {
-    const loginScreen = document.getElementById('login-screen');
-    const appMain = document.getElementById('app-main');
-    const splash = document.getElementById('splash-overlay');
+  const GUEST_KEY = 'bukukas-guest';
+  let authResolved = false;
+  let currentAuthUser = null;
+  let splashLeaveReady = false;
+  let splashGone = false;
+  let appEntered = false;
+  let entering = false;
 
-    if (user) {
-      // Sudah login: sembunyikan login screen dan splash, tampilkan app
-      if (splash) splash.classList.add('hidden');
-      loginScreen.classList.add('hidden');
-      appMain.style.display = 'block';
+  function isGuest() {
+    try { return localStorage.getItem(GUEST_KEY) === '1'; } catch (e) { return false; }
+  }
+  function setGuest(on) {
+    try { if (on) localStorage.setItem(GUEST_KEY, '1'); else localStorage.removeItem(GUEST_KEY); } catch (e) { /* abaikan */ }
+  }
+
+  function setAppVisible(visible) {
+    ['.app-header', '#app-main', '.bottom-nav'].forEach((sel) => {
+      const el = document.querySelector(sel);
+      if (el) el.style.display = visible ? '' : 'none';
+    });
+  }
+
+  function showLoginScreen() {
+    appEntered = false;
+    entering = false;
+    setAppVisible(false);
+    document.getElementById('login-screen').classList.remove('hidden');
+  }
+
+  function enterApp(animated) {
+    if (entering) return;
+    const login = document.getElementById('login-screen');
+    const go = () => {
+      login.classList.add('hidden');
+      setAppVisible(true);
+      appEntered = true;
+      entering = false;
       switchView('dashboard');
+    };
+    entering = true;
+    if (!animated) { go(); return; }
+    const overlay = document.getElementById('login-success');
+    overlay.classList.remove('out');
+    overlay.classList.add('show');
+    sfx('thump');
+    setTimeout(() => sfx('whoosh'), 450);
+    setTimeout(() => {
+      go();
+      overlay.classList.add('out');
+      setTimeout(() => overlay.classList.remove('show', 'out'), 360);
+    }, 1000);
+  }
+
+  function tryLeaveSplash() {
+    if (splashGone || !splashLeaveReady || !authResolved) return;
+    splashGone = true;
+    const splash = document.getElementById('splash-overlay');
+    // siapkan layar di bawah splash, lalu splash memudar sambil zoom
+    if (currentAuthUser || isGuest()) enterApp(false); else showLoginScreen();
+    sfx('whoosh');
+    if (splash) {
+      splash.classList.add('leaving');
+      setTimeout(() => splash.classList.add('hidden'), 460);
+    }
+  }
+  // Timeline splash: total 2.0 dtk (animasi 0–1.55 dtk, zoom keluar 1.55–2.0 dtk)
+  setTimeout(() => sfx('click'), 80);
+  setTimeout(() => sfx('paper'), 640);
+  setTimeout(() => { splashLeaveReady = true; tryLeaveSplash(); }, 1550);
+
+  function handleAuthState(user) {
+    currentAuthUser = user;
+    updateAkunUI(user);
+    if (!authResolved) {
+      authResolved = true;
+      tryLeaveSplash();
+      return;
+    }
+    if (user) {
+      if (!appEntered) enterApp(true);
     } else {
-      // Belum login: hide splash, tampilkan login screen, sembunyikan app
-      if (splash) splash.classList.add('hidden');
-      loginScreen.classList.remove('hidden');
-      appMain.style.display = 'none';
+      setGuest(false);
+      setAuthModeLogin('login');
+      showLoginScreen();
+    }
+  }
+
+  /* Animasi koin & uang kertas jatuh ke dompet — berulang tanpa henti
+     (murni CSS infinite) selama halaman login tampil. */
+  function buildLoginRain() {
+    const drop = document.getElementById('lg-drop');
+    const amb = document.getElementById('lg-ambient');
+    if (!drop || !amb || drop.childElementCount) return;
+    const COIN = '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="12.5" fill="#F5C451" stroke="#D49B1F" stroke-width="2"/><circle cx="14" cy="14" r="8.5" fill="none" stroke="#D49B1F" stroke-width="1.4"/><text x="14" y="18.4" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="12" fill="#8A5F0A">$</text></svg>';
+    const BILL = '<svg viewBox="0 0 40 24"><rect x="1" y="1" width="38" height="22" rx="4" fill="#D6F5E5" stroke="#16243B" stroke-width="2"/><circle cx="20" cy="12" r="6" fill="#7ED9B4" stroke="#16243B" stroke-width="1.6"/><text x="20" y="15.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="8.5" fill="#16243B">$</text></svg>';
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    for (let i = 0; i < 10; i++) {
+      const bill = i % 3 === 1;
+      const el = document.createElement('span');
+      el.className = 'lg-item' + (bill ? ' bill' : '');
+      el.innerHTML = bill ? BILL : COIN;
+      el.style.setProperty('--x', rnd(-70, 70).toFixed(0) + 'px');
+      el.style.setProperty('--d', rnd(1.9, 2.8).toFixed(2) + 's');
+      el.style.setProperty('--delay', (-rnd(0, 2.8)).toFixed(2) + 's');
+      el.style.setProperty('--r', rnd(-40, 40).toFixed(0) + 'deg');
+      drop.appendChild(el);
+    }
+    for (let i = 0; i < 9; i++) {
+      const bill = i % 2 === 1;
+      const el = document.createElement('span');
+      el.className = 'lg-amb';
+      el.innerHTML = bill ? BILL : COIN;
+      el.style.setProperty('--x', rnd(2, 92).toFixed(0) + '%');
+      el.style.setProperty('--s', rnd(24, 44).toFixed(0) + 'px');
+      el.style.setProperty('--d', rnd(9, 16).toFixed(1) + 's');
+      el.style.setProperty('--delay', (-rnd(0, 14)).toFixed(1) + 's');
+      el.style.setProperty('--r', rnd(-200, 200).toFixed(0) + 'deg');
+      amb.appendChild(el);
     }
   }
 
@@ -489,8 +652,14 @@
     document.querySelectorAll('#auth-mode-segmented-login .segment').forEach((seg) => {
       seg.classList.toggle('active', seg.dataset.authMode === mode);
     });
-    document.getElementById('auth-username-wrap-login').hidden = mode !== 'register';
-    document.getElementById('auth-submit-btn-login').textContent = mode === 'register' ? 'Daftar' : 'Masuk';
+    const isRegister = mode === 'register';
+    document.getElementById('auth-username-wrap-login').hidden = !isRegister;
+    document.querySelector('#auth-submit-btn-login .lg-btn-label').textContent = isRegister ? 'Daftar' : 'Masuk';
+    document.getElementById('lg-card-title').textContent = isRegister ? 'Buat Akun Baru' : 'Masuk ke Akun Anda';
+    document.getElementById('lg-card-sub').textContent = isRegister
+      ? 'Daftar gratis, lalu datamu bisa dipulihkan di HP mana pun.'
+      : 'Data keuanganmu bisa dipulihkan di HP mana pun.';
+    document.getElementById('auth-password-login').autocomplete = isRegister ? 'new-password' : 'current-password';
     document.getElementById('auth-error-login').textContent = '';
   }
 
@@ -546,20 +715,23 @@
     const password = document.getElementById('auth-password-login').value;
     const username = document.getElementById('auth-username-login').value.trim();
     const submitBtn = document.getElementById('auth-submit-btn-login');
+    const label = submitBtn.querySelector('.lg-btn-label');
+    const idleText = authModeLogin === 'register' ? 'Daftar' : 'Masuk';
     submitBtn.disabled = true;
+    label.textContent = 'Memproses...';
     try {
       if (authModeLogin === 'register') {
         await CloudSync.register(username, email, password);
-        showToast('Akun berhasil dibuat.');
       } else {
         await CloudSync.login(email, password);
-        showToast('Berhasil masuk.');
       }
       document.getElementById('form-auth-login').reset();
+      // Berhasil: onAuthChange -> handleAuthState memutar transisi layar hitam
     } catch (err) {
       errorEl.textContent = err.message;
     } finally {
       submitBtn.disabled = false;
+      label.textContent = idleText;
     }
   }
 
@@ -622,6 +794,17 @@
     });
     document.getElementById('form-auth-login').addEventListener('submit', handleAuthSubmitLogin);
     document.getElementById('btn-google-signin-login').addEventListener('click', handleGoogleSignInLogin);
+    document.getElementById('lg-guest-btn').addEventListener('click', () => {
+      setGuest(true);
+      enterApp(true);
+    });
+    document.getElementById('lg-toggle-pass').addEventListener('click', () => {
+      const input = document.getElementById('auth-password-login');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      document.getElementById('lg-toggle-pass').setAttribute('aria-label', show ? 'Sembunyikan password' : 'Tampilkan password');
+    });
+    buildLoginRain();
 
     // Binding untuk Akun view (dalam app)
     document.querySelectorAll('#auth-mode-segmented .segment').forEach((seg) => {
@@ -639,14 +822,13 @@
     });
     document.getElementById('btn-open-pin-config').addEventListener('click', () => openModal('modal-pin-config'));
 
-    if (window.CloudSync) {
-      CloudSync.onAuthChange((user) => {
-        updateAkunUI(user);
-        loginScreenGate(user);
-      });
+    if (window.CloudSync && CloudSync.isReady()) {
+      CloudSync.onAuthChange(handleAuthState);
+      // Jaga-jaga jika Firebase lambat merespons: jangan tahan splash selamanya
+      setTimeout(() => { if (!authResolved) handleAuthState(null); }, 3500);
     } else {
-      updateAkunUI(null);
-      loginScreenGate(null);
+      document.getElementById('lg-config-note').hidden = false;
+      handleAuthState(null);
     }
   }
 
@@ -2083,18 +2265,6 @@
     await DB.init();
     await reloadAll();
 
-    // Sembunyikan app-main dulu, let loginScreenGate show it
-    document.getElementById('app-main').style.display = 'none';
-
-    // Schedule splash screen to hide after animation completes (6.5s)
-    // Jika sudah login, loginScreenGate akan hide splash lebih cepat
-    setTimeout(() => {
-      const splash = document.getElementById('splash-overlay');
-      if (splash && !splash.classList.contains('hidden')) {
-        splash.classList.add('hidden');
-      }
-    }, 6500);
-
     bindNav();
     bindDashboard();
     bindTransaksi();
@@ -2103,7 +2273,7 @@
     bindGoal();
     bindKategori();
     bindAnggaran();
-    bindAkun(); // This sets up auth listener dan loginScreenGate
+    bindAkun(); // pasang listener auth + gerbang login
     bindPengaturan();
     bindModalDismiss();
     bindConfirmModal();
@@ -2111,7 +2281,7 @@
     bindSecuritySettings();
     updateSettingsLockUI();
 
-    // Jangan switchView dulu, tunggu loginScreenGate set user state
+    // Layar awal ditentukan oleh handleAuthState (splash -> login / dashboard)
 
     const security = getSecurity();
     if (security.enabled) {
