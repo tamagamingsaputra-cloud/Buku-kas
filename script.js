@@ -600,30 +600,37 @@
     const drop = document.getElementById('lg-drop');
     const amb = document.getElementById('lg-ambient');
     if (!drop || !amb || drop.childElementCount) return;
-    const COIN = '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="12.5" fill="#F5C451" stroke="#D49B1F" stroke-width="2"/><circle cx="14" cy="14" r="8.5" fill="none" stroke="#D49B1F" stroke-width="1.4"/><text x="14" y="18.4" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="12" fill="#8A5F0A">$</text></svg>';
-    const BILL = '<svg viewBox="0 0 40 24"><rect x="1" y="1" width="38" height="22" rx="4" fill="#D6F5E5" stroke="#16243B" stroke-width="2"/><circle cx="20" cy="12" r="6" fill="#7ED9B4" stroke="#16243B" stroke-width="1.6"/><text x="20" y="15.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="8.5" fill="#16243B">$</text></svg>';
-    const rnd = (a, b) => a + Math.random() * (b - a);
-    for (let i = 0; i < 10; i++) {
+    const COIN = '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="url(#gCoin)" stroke="#B9801A" stroke-width="1.6"/><circle cx="14" cy="14" r="10.6" fill="none" stroke="#FFF1B8" stroke-width="1.2" stroke-dasharray="1.3 1.7" opacity=".85"/><circle cx="14" cy="14" r="8" fill="none" stroke="#C98A16" stroke-width="1.1"/><text x="14.6" y="19.1" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="12" fill="#fff" opacity=".55">$</text><text x="14" y="18.5" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="12" fill="#8A5F0A">$</text><path d="M7.4 9.6a8 8 0 0 1 5-3.1" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></svg>';
+    const BILL = '<svg viewBox="0 0 40 24"><rect x="1" y="1" width="38" height="22" rx="4" fill="url(#gBill)" stroke="#16243B" stroke-width="2"/><rect x="4" y="4" width="32" height="16" rx="2" fill="none" stroke="#3FBF93" stroke-width=".9" opacity=".8"/><path d="M7 12h6M27 12h6" stroke="#3FBF93" stroke-width="1.4" stroke-linecap="round"/><circle cx="20" cy="12" r="6.2" fill="url(#gMint)" stroke="#16243B" stroke-width="1.6"/><text x="20" y="15.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="8.5" fill="#16243B">$</text></svg>';
+
+    // Aliran masuk ke dompet: 9 jalur sejajar, simetris kiri-kanan dari tengah.
+    // Jalur & jeda dibuat deterministik (bukan acak) supaya tidak ada sisi yang kosong.
+    const STREAM = 9;
+    for (let i = 0; i < STREAM; i++) {
       const bill = i % 3 === 1;
+      const dur = 2.0 + ((i * 5) % 7) * 0.12;
       const el = document.createElement('span');
       el.className = 'lg-item' + (bill ? ' bill' : '');
       el.innerHTML = bill ? BILL : COIN;
-      el.style.setProperty('--x', rnd(-70, 70).toFixed(0) + 'px');
-      el.style.setProperty('--d', rnd(1.9, 2.8).toFixed(2) + 's');
-      el.style.setProperty('--delay', (-rnd(0, 2.8)).toFixed(2) + 's');
-      el.style.setProperty('--r', rnd(-40, 40).toFixed(0) + 'deg');
+      el.style.setProperty('--x', ((i - (STREAM - 1) / 2) * 19).toFixed(0) + 'px');
+      el.style.setProperty('--d', dur.toFixed(2) + 's');
+      el.style.setProperty('--delay', (-((i * 0.83) % dur)).toFixed(2) + 's');
+      el.style.setProperty('--r', ((i % 2 ? 1 : -1) * (15 + ((i * 7) % 25))) + 'deg');
       drop.appendChild(el);
     }
-    for (let i = 0; i < 9; i++) {
-      const bill = i % 2 === 1;
+
+    // Latar: 8 jalur merata di seluruh lebar layar (kiri sampai kanan).
+    const SIZES = [34, 26, 40, 28, 36, 24, 38, 30];
+    for (let i = 0; i < SIZES.length; i++) {
+      const dur = 8 + ((i * 17) % 60) / 10;
       const el = document.createElement('span');
       el.className = 'lg-amb';
-      el.innerHTML = bill ? BILL : COIN;
-      el.style.setProperty('--x', rnd(2, 92).toFixed(0) + '%');
-      el.style.setProperty('--s', rnd(24, 44).toFixed(0) + 'px');
-      el.style.setProperty('--d', rnd(9, 16).toFixed(1) + 's');
-      el.style.setProperty('--delay', (-rnd(0, 14)).toFixed(1) + 's');
-      el.style.setProperty('--r', rnd(-200, 200).toFixed(0) + 'deg');
+      el.innerHTML = i % 2 ? BILL : COIN;
+      el.style.setProperty('--x', (6 + i * 12.6).toFixed(1) + '%');
+      el.style.setProperty('--s', SIZES[i] + 'px');
+      el.style.setProperty('--d', dur.toFixed(1) + 's');
+      el.style.setProperty('--delay', (-((i * 1.9) % dur)).toFixed(1) + 's');
+      el.style.setProperty('--r', ((i % 2 ? -1 : 1) * (140 + i * 10)) + 'deg');
       amb.appendChild(el);
     }
   }
@@ -916,7 +923,9 @@
   function switchView(name) {
     state.currentView = name;
     document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.dataset.view === name));
-    document.querySelectorAll('.nav-item').forEach((n) => n.classList.toggle('active', n.dataset.nav === name));
+    // Tabungan dibuka dari Dasbor, jadi tab Dasbor tetap menyala di halaman itu
+    const navName = name === 'target' ? 'dashboard' : name;
+    document.querySelectorAll('.nav-item').forEach((n) => n.classList.toggle('active', n.dataset.nav === navName));
     document.getElementById('app-main').scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     renderView(name);
   }
@@ -2159,6 +2168,21 @@
   /* ---------------------------------------------------------
      BIND EVENTS
   --------------------------------------------------------- */
+  /* Animasi tekan navigasi: tiap tombol punya gerakan sendiri
+     (kotak berputar, panah bertukar, tutup dompet terbuka, titik bergelombang,
+     tanda + berputar). Kelas .pop dipasang saat ditekan lalu dilepas otomatis. */
+  function bindNavFx() {
+    document.querySelectorAll('.bottom-nav .nav-item, .bottom-nav .nav-fab').forEach((btn) => {
+      btn.addEventListener('pointerdown', () => {
+        btn.classList.remove('pop');
+        void btn.offsetWidth; // mulai ulang animasi jika ditekan berulang
+        btn.classList.add('pop');
+        clearTimeout(btn._popTimer);
+        btn._popTimer = setTimeout(() => btn.classList.remove('pop'), 750);
+      }, { passive: true });
+    });
+  }
+
   function bindNav() {
     document.querySelectorAll('[data-nav]').forEach((el) => {
       el.addEventListener('click', () => switchView(el.dataset.nav));
@@ -2266,6 +2290,7 @@
     await reloadAll();
 
     bindNav();
+    bindNavFx();
     bindDashboard();
     bindTransaksi();
     bindTxForm();

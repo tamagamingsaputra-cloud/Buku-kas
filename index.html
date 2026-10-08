@@ -19,6 +19,19 @@
 </head>
 <body>
 
+<!-- Gradasi bersama untuk ilustrasi dompet, uang, dan koin -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gMint" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9BE9C8"/><stop offset="1" stop-color="#46C197"/></linearGradient>
+    <linearGradient id="gMintLight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D2F6E4"/><stop offset="1" stop-color="#93E1BF"/></linearGradient>
+    <linearGradient id="gBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27456F"/><stop offset="1" stop-color="#16243B"/></linearGradient>
+    <linearGradient id="gBill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3FDF8"/><stop offset="1" stop-color="#B9E8CF"/></linearGradient>
+    <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE48F"/><stop offset="1" stop-color="#E0A526"/></linearGradient>
+    <radialGradient id="gCoin" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#FFF1B8"/><stop offset=".55" stop-color="#F7C948"/><stop offset="1" stop-color="#D9951A"/></radialGradient>
+  </defs>
+</svg>
+
+
 <!-- ===================== SPLASH (2 detik) ===================== -->
 <div id="splash-overlay" class="splash-overlay" aria-hidden="true">
   <div class="splash-stage">
@@ -33,29 +46,41 @@
           <circle class="sp-spark s5" cx="196" cy="18" r="3.5"/>
         </g>
         <g class="sp-body">
-        <rect x="40" y="92" width="190" height="114" rx="16" fill="#16243B"/>
-        <g class="sp-bill sp-bill-a">
-          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
-          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
-          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
-          <circle cx="94" cy="64" r="3" fill="#16243B"/><circle cx="166" cy="98" r="3" fill="#16243B"/>
-        </g>
-        <g class="sp-bill sp-bill-b">
-          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
-          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
-          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
-          <circle cx="94" cy="64" r="3" fill="#16243B"/><circle cx="166" cy="98" r="3" fill="#16243B"/>
-        </g>
-        <g class="sp-bill sp-bill-c">
-          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
-          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
-          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
-          <circle cx="94" cy="64" r="3" fill="#16243B"/><circle cx="166" cy="98" r="3" fill="#16243B"/>
-        </g>
-        <rect x="30" y="100" width="190" height="104" rx="16" fill="#7ED9B4" stroke="#16243B" stroke-width="5"/>
-        <path d="M48 120H198" stroke="#16243B" stroke-width="2.5" stroke-dasharray="7 6" stroke-linecap="round" opacity=".55"/>
-        <rect x="188" y="138" width="52" height="38" rx="11" fill="#A9EACB" stroke="#16243B" stroke-width="5"/>
-        <circle cx="209" cy="157" r="7" fill="#fff" stroke="#16243B" stroke-width="4"/>
+          <ellipse cx="125" cy="211" rx="92" ry="6.5" fill="#16243B" opacity=".12"/>
+          <rect x="40" y="92" width="190" height="114" rx="18" fill="url(#gBack)" stroke="#16243B" stroke-width="5"/>
+          <g class="sp-bill sp-bill-a">
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g>
+          <g class="sp-bill sp-bill-b">
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g>
+          <g class="sp-bill sp-bill-c">
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g>
+          <rect x="30" y="100" width="190" height="104" rx="18" fill="url(#gMint)" stroke="#16243B" stroke-width="5"/>
+          <rect x="41" y="107" width="168" height="9" rx="4.5" fill="#fff" opacity=".34"/>
+          <path d="M46 128H196" stroke="#16243B" stroke-width="2.4" stroke-dasharray="7 6" stroke-linecap="round" opacity=".5"/>
+          <rect x="186" y="136" width="56" height="42" rx="12" fill="url(#gMintLight)" stroke="#16243B" stroke-width="5"/>
+          <circle cx="212" cy="157" r="9.5" fill="url(#gGold)" stroke="#16243B" stroke-width="4"/>
+          <circle cx="208.8" cy="153.8" r="2.6" fill="#fff" opacity=".85"/>
         </g>
       </svg>
     </div>
@@ -125,26 +150,41 @@
       <div class="lg-hero">
         <div class="lg-drop" id="lg-drop" aria-hidden="true"></div>
         <svg class="lg-wallet" viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="40" y="92" width="190" height="114" rx="16" fill="#16243B"/>
+          <ellipse cx="125" cy="211" rx="92" ry="6.5" fill="#16243B" opacity=".12"/>
+          <rect x="40" y="92" width="190" height="114" rx="18" fill="url(#gBack)" stroke="#16243B" stroke-width="5"/>
           <g transform="translate(-8 -26) rotate(-8 130 110)"><g class="lg-bill b1">
-          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
-          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
-          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
-        </g></g>
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g></g>
           <g transform="translate(14 -40) rotate(7 130 110)"><g class="lg-bill b2">
-          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
-          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
-          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
-        </g></g>
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g></g>
           <g transform="translate(36 -30) rotate(20 130 110)"><g class="lg-bill b3">
-          <rect x="82" y="52" width="96" height="58" rx="7" fill="#D6F5E5" stroke="#16243B" stroke-width="4"/>
-          <circle cx="130" cy="81" r="15" fill="#7ED9B4" stroke="#16243B" stroke-width="3.5"/>
-          <text x="130" y="87" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
-        </g></g>
-          <rect x="30" y="100" width="190" height="104" rx="16" fill="#7ED9B4" stroke="#16243B" stroke-width="5"/>
-        <path d="M48 120H198" stroke="#16243B" stroke-width="2.5" stroke-dasharray="7 6" stroke-linecap="round" opacity=".55"/>
-        <rect x="188" y="138" width="52" height="38" rx="11" fill="#A9EACB" stroke="#16243B" stroke-width="5"/>
-        <circle cx="209" cy="157" r="7" fill="#fff" stroke="#16243B" stroke-width="4"/>
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g></g>
+          <rect x="30" y="100" width="190" height="104" rx="18" fill="url(#gMint)" stroke="#16243B" stroke-width="5"/>
+          <rect x="41" y="107" width="168" height="9" rx="4.5" fill="#fff" opacity=".34"/>
+          <path d="M46 128H196" stroke="#16243B" stroke-width="2.4" stroke-dasharray="7 6" stroke-linecap="round" opacity=".5"/>
+          <rect x="186" y="136" width="56" height="42" rx="12" fill="url(#gMintLight)" stroke="#16243B" stroke-width="5"/>
+          <circle cx="212" cy="157" r="9.5" fill="url(#gGold)" stroke="#16243B" stroke-width="4"/>
+          <circle cx="208.8" cy="153.8" r="2.6" fill="#fff" opacity=".85"/>
         </svg>
         <h1 class="lg-title">Buku Kas</h1>
         <p class="lg-tag">Kelola Uang Lebih Baik</p>
@@ -257,6 +297,22 @@
         </div>
       </div>
 
+      <button class="dash-saving-link" data-nav="target">
+        <span class="dsl-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle class="dsl-coin" cx="11" cy="3.6" r="1.9"/>
+            <path d="M19 6.5c-1.4 0-2.6 1-3 2-3.4-1.3-10-.2-10 4.7 0 1.7.3 2.8 2 4V21h4v-2h3v2h4v-3.8c.9-.5 1.6-1.1 2-2.2h2v-4h-2c-.2-.9-.6-1.5-1-2V6.5Z"/>
+            <circle cx="16" cy="12" r=".7" fill="currentColor" stroke="none"/>
+            <path d="M2 11v1.2c0 1 .8 1.8 1.8 1.8H5"/>
+          </svg>
+        </span>
+        <span class="dsl-text">
+          <span class="dsl-title">Tabungan</span>
+          <span class="dsl-desc">Pantau target dan setoran tabunganmu</span>
+        </span>
+        <svg class="dsl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">Tren Pengeluaran</h2>
@@ -355,6 +411,9 @@
     <!-- ---------- TABUNGAN ---------- -->
     <section class="view" id="view-target" data-view="target">
       <div class="view-header-row">
+        <button class="back-btn" data-nav="dashboard" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
         <h2 class="view-title">Tabungan Saya</h2>
       </div>
 
@@ -663,27 +722,40 @@
 
   <!-- ===================== BOTTOM NAV ===================== -->
   <nav class="bottom-nav">
-    <button class="nav-item active" data-nav="dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    <button class="nav-item active" data-nav="dashboard" data-fx="tiles">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <rect class="t t1 tint" x="3.5" y="3.5" width="7" height="9" rx="2"/>
+        <rect class="t t2 tint" x="13.5" y="3.5" width="7" height="5.5" rx="2"/>
+        <rect class="t t3 tint" x="13.5" y="12" width="7" height="8.5" rx="2"/>
+        <rect class="t t4 tint" x="3.5" y="15.5" width="7" height="5" rx="2"/>
+      </svg>
       <span>Dasbor</span>
     </button>
-    <button class="nav-item" data-nav="transaksi">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h3"/></svg>
+    <button class="nav-item" data-nav="transaksi" data-fx="swap">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path class="a1" d="M4 8h14M14 4l4 4-4 4"/>
+        <path class="a2" d="M20 16H6M10 12l-4 4 4 4"/>
+      </svg>
       <span>Transaksi</span>
     </button>
-    <button class="nav-fab" id="btn-open-add-tx" aria-label="Tambah transaksi">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+    <button class="nav-fab" id="btn-open-add-tx" data-fx="plus" aria-label="Tambah transaksi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path class="plus" d="M12 5v14M5 12h14"/></svg>
     </button>
-    <button class="nav-item" data-nav="target">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>
-      <span>Target</span>
-    </button>
-    <button class="nav-item" data-nav="dompet">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M16 15h2"/></svg>
+    <button class="nav-item" data-nav="dompet" data-fx="wallet">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path class="flap" d="M6.5 7 15 4.2a1.6 1.6 0 0 1 2.1 1.5V7"/>
+        <rect class="tint" x="3.5" y="7" width="17" height="13" rx="3.2"/>
+        <path class="tint clasp" d="M15.5 12.2h5v4.2h-5a2.1 2.1 0 0 1 0-4.2Z"/>
+        <circle class="dot" cx="16.7" cy="14.3" r=".9" fill="currentColor" stroke="none"/>
+      </svg>
       <span>Dompet</span>
     </button>
-    <button class="nav-item" data-nav="lainnya">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+    <button class="nav-item" data-nav="lainnya" data-fx="dots">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <circle class="d1" cx="5" cy="12" r="1.8" fill="currentColor"/>
+        <circle class="d2" cx="12" cy="12" r="1.8" fill="currentColor"/>
+        <circle class="d3" cx="19" cy="12" r="1.8" fill="currentColor"/>
+      </svg>
       <span>Lainnya</span>
     </button>
   </nav>

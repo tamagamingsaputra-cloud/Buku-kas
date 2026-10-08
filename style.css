@@ -1155,7 +1155,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .lg-ambient { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .lg-amb {
-  position: absolute; top: 0; left: var(--x); width: var(--s); opacity: .2;
+  position: absolute; top: 0; left: var(--x); width: var(--s); opacity: .34;
   animation: lgAmbient var(--d) linear var(--delay) infinite;
 }
 .lg-amb svg { display: block; width: 100%; height: auto; }
@@ -1290,4 +1290,100 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce) {
   .lg-item, .lg-amb, .lg-bill, .lg-wallet, .lg-btn::after, .splash-art { animation: none; }
   .lg-item, .lg-amb { display: none; }
+}
+
+/* ============================================================
+   NAVIGASI BAWAH — ikon baru + animasi tekan unik per tombol
+   ============================================================ */
+.nav-item, .nav-fab { position: relative; -webkit-tap-highlight-color: transparent; }
+.nav-item { transition: color .25s ease; }
+.nav-item .ni { width: 22px; height: 22px; overflow: visible; transition: transform .3s cubic-bezier(.34, 1.56, .64, 1); }
+.nav-item:active .ni { transform: scale(.8); }
+.nav-item.active .ni { transform: translateY(-1px); }
+.nav-item.active:active .ni { transform: translateY(-1px) scale(.8); }
+.bottom-nav svg * { transform-box: fill-box; transform-origin: center; }
+.nav-item .tint { fill: transparent; transition: fill .25s ease, fill-opacity .25s ease; }
+.nav-item.active .tint { fill: currentColor; fill-opacity: .2; }
+
+/* penanda aktif: batang emas kecil di tepi atas */
+.nav-item::after {
+  content: ''; position: absolute; top: -8px; left: 50%; width: 22px; height: 3px; margin-left: -11px;
+  border-radius: 0 0 4px 4px; background: var(--gold);
+  transform: scaleX(0); opacity: 0; transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), opacity .2s ease;
+}
+.nav-item.active::after { transform: scaleX(1); opacity: 1; }
+
+/* riak emas di belakang ikon saat ditekan */
+.nav-item::before {
+  content: ''; position: absolute; top: 3px; left: 50%; width: 38px; height: 38px; margin-left: -19px;
+  border-radius: 50%; background: var(--gold); opacity: 0; transform: scale(.3); pointer-events: none;
+}
+.nav-item.pop::before { animation: navRipple .55s ease-out; }
+@keyframes navRipple { 0% { opacity: .32; transform: scale(.3); } 100% { opacity: 0; transform: scale(1.25); } }
+
+/* Dasbor: empat kotak mengecil lalu memantul bergantian */
+.nav-item.pop .t { animation: navTile .55s cubic-bezier(.34, 1.56, .64, 1); }
+.nav-item.pop .t2 { animation-delay: .06s; } .nav-item.pop .t3 { animation-delay: .12s; } .nav-item.pop .t4 { animation-delay: .18s; }
+@keyframes navTile { 0% { transform: scale(1); } 35% { transform: scale(.5); } 100% { transform: scale(1); } }
+
+/* Transaksi: dua panah saling bertukar arah */
+.nav-item.pop .a1 { animation: navArrowR .6s cubic-bezier(.34, 1.56, .64, 1); }
+.nav-item.pop .a2 { animation: navArrowL .6s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes navArrowR { 0% { transform: translateX(0); } 30% { transform: translateX(-4px); } 65% { transform: translateX(4px); } 100% { transform: translateX(0); } }
+@keyframes navArrowL { 0% { transform: translateX(0); } 30% { transform: translateX(4px); } 65% { transform: translateX(-4px); } 100% { transform: translateX(0); } }
+
+/* Dompet: tutup terbuka sebentar dan kancing berkedip */
+.nav-item .flap { transform-origin: 0% 100%; }
+.nav-item.pop .flap { animation: navFlap .65s cubic-bezier(.34, 1.56, .64, 1); }
+.nav-item.pop .dot { animation: navDotPulse .55s ease; }
+@keyframes navFlap { 0% { transform: rotate(0); } 40% { transform: rotate(-22deg) translateY(-1px); } 100% { transform: rotate(0); } }
+@keyframes navDotPulse { 0%, 100% { transform: scale(1); } 45% { transform: scale(2.4); } }
+
+/* Lainnya: tiga titik melompat bergelombang */
+.nav-item.pop .d1 { animation: navWave .55s ease; }
+.nav-item.pop .d2 { animation: navWave .55s ease .08s; }
+.nav-item.pop .d3 { animation: navWave .55s ease .16s; }
+@keyframes navWave { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); } 70% { transform: translateY(1.5px); } }
+
+/* Tombol + : tanda berputar dan cincin menyebar */
+.nav-fab::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--gold); opacity: 0; pointer-events: none;
+}
+.nav-fab.pop::after { animation: navFabRing .6s ease-out; }
+.nav-fab.pop .plus { animation: navPlus .55s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes navFabRing { 0% { opacity: .7; transform: scale(1); } 100% { opacity: 0; transform: scale(1.7); } }
+@keyframes navPlus { 0% { transform: rotate(0) scale(1); } 100% { transform: rotate(180deg) scale(1); } }
+
+/* ============================================================
+   KARTU TABUNGAN DI DASBOR
+   ============================================================ */
+.dash-saving-link {
+  width: 100%; display: flex; align-items: center; gap: 14px; text-align: left;
+  background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+  padding: 14px; margin-bottom: 16px; box-shadow: var(--shadow-sm); color: var(--text);
+  transition: transform .2s cubic-bezier(.34, 1.56, .64, 1), border-color .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.dash-saving-link:active { transform: scale(.98); border-color: var(--gold); }
+.dsl-icon {
+  width: 48px; height: 48px; border-radius: 15px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(145deg, var(--gold-soft), transparent); color: var(--gold);
+  border: 1px solid var(--gold-soft);
+}
+.dsl-icon svg { width: 28px; height: 28px; overflow: visible; }
+.dsl-coin { transform-box: fill-box; transform-origin: center; animation: dslCoin 2.4s ease-in infinite; }
+@keyframes dslCoin {
+  0% { transform: translateY(-3px); opacity: 0; }
+  20% { opacity: 1; }
+  70% { transform: translateY(3px); opacity: 1; }
+  100% { transform: translateY(4px); opacity: 0; }
+}
+.dsl-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dsl-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600; }
+.dsl-desc { font-size: 12px; color: var(--text-faint); line-height: 1.4; }
+.dsl-chevron { width: 18px; height: 18px; color: var(--text-faint); flex-shrink: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item.pop *, .nav-fab.pop *, .nav-item.pop::before, .nav-fab.pop::after, .dsl-coin { animation: none; }
 }
