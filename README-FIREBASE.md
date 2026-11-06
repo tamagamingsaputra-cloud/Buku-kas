@@ -57,3 +57,30 @@ untuk menariknya kembali.
 Firebase gratis (paket Spark) sudah lebih dari cukup untuk pemakaian
 pribadi. Tidak ada biaya SMS karena login memakai Email/Password dan
 Google, bukan OTP SMS.
+
+---
+
+## Login Google tanpa pindah halaman (opsional)
+
+Secara bawaan "Lanjutkan dengan Google" membuka popup Google. Agar pemilih akun muncul
+**di dalam halaman** (panel kecil, tanpa pindah tab), isi `BUKUKAS_GOOGLE_CLIENT_ID`
+di `firebase-config.js`:
+
+1. Firebase Console → **Authentication → Sign-in method → Google** → buka bagian
+   **Web SDK configuration** → salin **Web client ID**
+   (bentuknya `123456-abcdef.apps.googleusercontent.com`).
+2. Tempel ke `firebase-config.js`:
+   `window.BUKUKAS_GOOGLE_CLIENT_ID = "123456-abcdef.apps.googleusercontent.com";`
+3. Buka **console.cloud.google.com** → pilih project yang sama → **APIs & Services → Credentials**
+   → klik **Web client (auto created by Google Service)** → di **Authorized JavaScript origins**
+   klik **Add URI** dan tambahkan alamat websitemu, misalnya `https://buku-kas-five.vercel.app`
+   (tanpa garis miring di akhir) → **Save** (bisa butuh beberapa menit untuk aktif).
+4. Deploy ulang. Jika panel tidak bisa tampil (client ID kosong, origin belum didaftarkan,
+   dsb.) aplikasi otomatis memakai popup biasa, jadi login tetap berjalan.
+
+## Foto struk
+
+Di form "Tambah Transaksi" ada tombol **Foto Struk**. Teks struk dibaca di HP dengan
+Tesseract.js (gratis). Pertama kali dipakai perlu internet untuk mengunduh pembaca teks,
+berikutnya tersimpan di browser. Foto tidak diunggah dan tidak disimpan. Hasilnya selalu
+perlu dicek sebelum disimpan.

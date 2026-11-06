@@ -32,6 +32,42 @@
     return map[code] || (err && err.message) || 'Terjadi kesalahan, coba lagi.';
   }
 
+  /* Login Google DI DALAM halaman (Google Identity Services): pemilih akun muncul
+     sebagai panel/bottom-sheet tanpa berpindah tab. Butuh BUKUKAS_GOOGLE_CLIENT_ID
+     di firebase-config.js. Jika tidak tersedia/ditolak, otomatis pakai popup biasa. */
+  function gisAvailable() {
+    return !!(window.BUKUKAS_GOOGLE_CLIENT_ID && window.google && google.accounts && google.accounts.id);
+  }
+
+  function googleCredentialPrompt() {
+    return new Promise((resolve, reject) => {
+      let settled = false, displayed = false;
+      const done = (fn, v) => { if (!settled) { settled = true; fn(v); } };
+      try {
+        google.accounts.id.initialize({
+          client_id: window.BUKUKAS_GOOGLE_CLIENT_ID,
+          callback: (r) => done(resolve, r.credential),
+          auto_select: false,
+          cancel_on_tap_outside: false,
+          use_fedcm_for_prompt: true
+        });
+        google.accounts.id.prompt((n) => {
+          if (n.isDisplayMoment && n.isDisplayMoment()) {
+            if (n.isDisplayed && n.isDisplayed()) displayed = true; else done(reject, { fallback: true });
+          } else if (n.isSkippedMoment && n.isSkippedMoment()) {
+            done(reject, { fallback: true });
+          } else if (n.isDismissedMoment && n.isDismissedMoment()) {
+            if (n.getDismissedReason && n.getDismissedReason() !== 'credential_returned') done(reject, { cancelled: true });
+          }
+        });
+        // jaga-jaga: jika panel tidak pernah tampil, jangan menggantung
+        setTimeout(() => { if (!displayed) done(reject, { fallback: true }); }, 3500);
+      } catch (e) {
+        done(reject, { fallback: true });
+      }
+    });
+  }
+
   const CloudSync = {
     isReady: ready,
 
@@ -76,16 +112,30 @@
     loginWithGoogle: async function () {
       if (!ready()) throw new Error('Firebase belum dikonfigurasi. Lihat README-FIREBASE.md.');
       try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        const cred = await firebase.auth().signInWithPopup(provider);
-        await firebase.firestore().collection('users').doc(cred.user.uid).set({
-          username: cred.user.displayName || '',
-          email: cred.user.email || '',
+        let user = null;
+        if (gisAvailable()) {
+          try {
+            const idToken = await googleCredentialPrompt();
+            const cred = await firebase.auth().signInWithCredential(firebase.auth.GoogleAuthProvider.credential(idToken));
+            user = cred.user;
+          } catch (e) {
+            if (e && e.cancelled) throw new Error('Login Google dibatalkan.');
+            if (e && e.code) throw e;   // error Firebase asli (bukan sekadar panel tak tampil)
+            // selain itu: lanjut ke popup
+          }
+        }
+        if (!user) {
+          const provider = new firebase.auth.GoogleAuthProvider();
+          const cred = await firebase.auth().signInWithPopup(provider);
+          user = cred.user;
+        }
+        await firebase.firestore().collection('users').doc(user.uid).set({
+          email: user.email || '',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        return cred.user;
+        return user;
       } catch (err) {
-        throw new Error(friendlyAuthError(err));
+        throw new Error(err && err.code ? friendlyAuthError(err) : (err && err.message) || 'Terjadi kesalahan, coba lagi.');
       }
     },
 

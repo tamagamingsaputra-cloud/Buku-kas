@@ -1754,6 +1754,7 @@
     }
     const form = document.getElementById('form-tx');
     form.reset();
+    resetScanUI();
     populateTxWalletSelect();
 
     const editing = id ? state.transactions.find((t) => t.id === id) : null;
@@ -2867,6 +2868,143 @@
   }
 
   /* ---------------------------------------------------------
+     FOTO STRUK — OCR di perangkat (Tesseract.js), lalu isi form otomatis.
+     Foto tidak diunggah ke server dan tidak disimpan.
+  --------------------------------------------------------- */
+  let tesseractPromise = null;
+  function loadTesseract() {
+    if (window.Tesseract) return Promise.resolve();
+    if (!tesseractPromise) {
+      tesseractPromise = new Promise((resolve, reject) => {
+        const el = document.createElement('script');
+        el.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+        el.onload = resolve;
+        el.onerror = () => { tesseractPromise = null; reject(new Error('offline')); };
+        document.head.appendChild(el);
+      });
+    }
+    return tesseractPromise;
+  }
+
+  /* Perkecil, ubah ke abu-abu, dan tegaskan kontras supaya OCR lebih akurat */
+  async function prepareReceiptImage(file) {
+    let bmp;
+    try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+    catch (e) { bmp = await createImageBitmap(file); }
+    const MAX = 1800;
+    const k = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * k)), h = Math.max(1, Math.round(bmp.height * k));
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(bmp, 0, 0, w, h);
+    const preview = c.toDataURL('image/jpeg', 0.6);
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data, hist = new Uint32Array(256);
+    for (let i = 0; i < d.length; i += 4) {
+      const g = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114) | 0;
+      d[i] = d[i + 1] = d[i + 2] = g; hist[g]++;
+    }
+    const total = w * h; let acc = 0, lo = 0, hi = 255;
+    for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc > total * 0.02) { lo = v; break; } }
+    acc = 0;
+    for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc > total * 0.02) { hi = v; break; } }
+    const span = Math.max(40, hi - lo);
+    for (let i = 0; i < d.length; i += 4) {
+      const v = Math.max(0, Math.min(255, ((d[i] - lo) * 255) / span));
+      d[i] = d[i + 1] = d[i + 2] = v;
+    }
+    ctx.putImageData(img, 0, 0);
+    const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+    return { blob, preview };
+  }
+
+  function resetScanUI() {
+    const box = document.getElementById('scan-preview');
+    if (!box) return;
+    box.hidden = true;
+    box.classList.remove('busy', 'done', 'fail');
+    document.getElementById('scan-img').removeAttribute('src');
+  }
+
+  function setScanStatus(text, pct) {
+    document.getElementById('scan-status').textContent = text;
+    if (typeof pct === 'number') document.getElementById('scan-bar-fill').style.width = Math.round(pct * 100) + '%';
+  }
+
+  function applyReceiptResult(r) {
+    const expenseNames = state.categories.filter((c) => c.type === 'expense').map((c) => c.name);
+    setTxTypeSegment('expense');
+    const touched = [];
+    if (r.amount) {
+      const el = document.getElementById('tx-amount');
+      el.value = Number(r.amount).toLocaleString('id-ID');
+      touched.push(el);
+    }
+    if (r.date) { const el = document.getElementById('tx-date'); el.value = r.date; touched.push(el); }
+    const noteEl = document.getElementById('tx-note');
+    if (r.merchant && !noteEl.value.trim()) { noteEl.value = r.merchant; touched.push(noteEl); }
+    if (r.category && expenseNames.includes(r.category)) {
+      const sel = document.getElementById('tx-category');
+      const opt = Array.from(sel.options).find((o) => o.textContent === r.category);
+      if (opt) { sel.value = opt.value; touched.push(sel); }
+    }
+    touched.forEach((el, i) => {
+      const f = el.closest('.field');
+      if (!f) return;
+      setTimeout(() => { f.classList.remove('autofill'); void f.offsetWidth; f.classList.add('autofill'); setTimeout(() => f.classList.remove('autofill'), 1700); }, i * 120);
+    });
+  }
+
+  async function handleReceiptFile(file) {
+    if (!file) return;
+    const box = document.getElementById('scan-preview');
+    box.hidden = false;
+    box.classList.remove('done', 'fail');
+    box.classList.add('busy');
+    setScanStatus('Menyiapkan foto…', 0.03);
+    try {
+      const { blob, preview } = await prepareReceiptImage(file);
+      document.getElementById('scan-img').src = preview;
+      setScanStatus('Menyiapkan pembaca (hanya saat pertama)…', 0.05);
+      await loadTesseract();
+      const logger = (m) => {
+        if (m.status === 'recognizing text') setScanStatus('Membaca struk…', 0.2 + m.progress * 0.78);
+        else if (/loading|initializ/.test(m.status || '')) setScanStatus('Menyiapkan pembaca (hanya saat pertama)…', 0.05 + (m.progress || 0) * 0.15);
+      };
+      let res;
+      try { res = await Tesseract.recognize(blob, 'ind', { logger }); }
+      catch (e) { res = await Tesseract.recognize(blob, 'eng', { logger }); }
+      const names = state.categories.filter((c) => c.type === 'expense').map((c) => c.name);
+      const r = Receipt.parse(res.data.text, names);
+      box.classList.remove('busy');
+      if (!r.amount && !r.date && !r.merchant) {
+        box.classList.add('fail');
+        setScanStatus('Struk tidak terbaca. Coba foto lebih terang dan lurus.', 1);
+        shake(box);
+        return;
+      }
+      applyReceiptResult(r);
+      box.classList.add('done');
+      setScanStatus(r.amount ? (r.confidence < 0.5 ? 'Terbaca. Periksa lagi nominalnya ya.' : 'Struk terbaca. Periksa lalu simpan.') : 'Total tidak terbaca. Isi nominal manual.', 1);
+      celebrate('check');
+    } catch (err) {
+      box.classList.remove('busy');
+      box.classList.add('fail');
+      setScanStatus(err && err.message === 'offline' ? 'Butuh internet untuk memindai pertama kali.' : 'Gagal membaca foto. Coba lagi.', 1);
+      shake(box);
+    } finally {
+      document.getElementById('receipt-input').value = '';
+    }
+  }
+
+  function bindReceipt() {
+    const input = document.getElementById('receipt-input');
+    document.getElementById('btn-scan-receipt').addEventListener('click', () => input.click());
+    input.addEventListener('change', () => handleReceiptFile(input.files && input.files[0]));
+  }
+
+  /* ---------------------------------------------------------
      INIT
   --------------------------------------------------------- */
   async function init() {
@@ -2886,6 +3024,7 @@
     bindAkun(); // pasang listener auth + gerbang login
     bindAuthSheet();
     bindHutang();
+    bindReceipt();
     bindFx();
     document.getElementById('settings-notif-switch').addEventListener('click', toggleNotif);
     updateNotifSwitch();

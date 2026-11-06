@@ -29,6 +29,11 @@ const firebaseConfig = {
   appId: "1:743371714827:web:98f26fd0010efc5392b20e"
 };
 
+// Opsional: Web client ID Google agar login Google muncul DI DALAM halaman
+// (tanpa pindah tab). Cara mendapatkannya: lihat README-FIREBASE.md bagian
+// "Login Google tanpa pindah halaman". Kosongkan jika belum ada -> pakai popup.
+window.BUKUKAS_GOOGLE_CLIENT_ID = "";
+
 window.BUKUKAS_FIREBASE_READY = false;
 
 (function initFirebase() {

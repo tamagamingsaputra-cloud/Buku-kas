@@ -814,6 +814,22 @@
     </div>
     <form id="form-tx" class="modal-body">
       <input type="hidden" id="tx-id" />
+      <button type="button" class="scan-btn" id="btn-scan-receipt">
+        <span class="scan-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle class="scan-lens" cx="12" cy="12" r="3.2"/></svg>
+        </span>
+        <span class="scan-text"><b>Foto Struk</b><small>Isi otomatis dari kamera atau galeri</small></span>
+      </button>
+      <input type="file" id="receipt-input" accept="image/*" hidden />
+      <div class="scan-preview" id="scan-preview" hidden>
+        <img id="scan-img" alt="Struk" />
+        <span class="scan-line"></span>
+        <span class="scan-done" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <div class="scan-info">
+          <span id="scan-status">Membaca struk…</span>
+          <div class="scan-bar"><i id="scan-bar-fill"></i></div>
+        </div>
+      </div>
       <div class="segmented" id="tx-type-segmented">
         <button type="button" class="segment active" data-tx-type="expense">Pengeluaran</button>
         <button type="button" class="segment" data-tx-type="income">Pemasukan</button>
@@ -1281,10 +1297,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="firebase-config.js"></script>
 
 <script src="database.js"></script>
 <script src="cloud-sync.js"></script>
+<script src="receipt.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

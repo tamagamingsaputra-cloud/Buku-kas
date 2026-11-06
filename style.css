@@ -1660,3 +1660,38 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .modal-actions .btn-primary, .modal-actions .btn-secondary { flex: 1; width: auto; min-width: 0; margin: 0; }
 #auth-step-email .field { margin-bottom: 12px; }
 #auth-step-email .segmented { margin-bottom: 14px; }
+
+/* ============================================================
+   FOTO STRUK
+   ============================================================ */
+.scan-btn { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 16px; border: 1.5px dashed var(--gold); background: var(--gold-soft); color: var(--text); font-family: inherit; position: relative; overflow: hidden; transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
+.scan-btn:active { transform: scale(.97); }
+.scan-ic { width: 40px; height: 40px; border-radius: 12px; background: var(--gold); color: var(--gold-ink); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.scan-ic svg { width: 22px; height: 22px; overflow: visible; }
+.scan-lens { transform-box: fill-box; transform-origin: center; transition: transform .25s ease; }
+.scan-btn:active .scan-lens { transform: scale(1.7); }
+.scan-btn:not(:active) .scan-lens { animation: lensPulse 2.6s ease-in-out infinite; }
+@keyframes lensPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+.scan-text { display: flex; flex-direction: column; gap: 1px; }
+.scan-text b { font-size: 14px; font-weight: 600; }
+.scan-text small { font-size: 11.5px; color: var(--text-dim); }
+
+.scan-preview { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); height: 168px; }
+.scan-preview[hidden] { display: none; }
+.scan-preview img { width: 100%; height: 100%; object-fit: cover; object-position: top; filter: saturate(.8); transition: filter .4s; }
+.scan-preview.busy img { filter: saturate(.8) brightness(.75); }
+.scan-line { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--gold), transparent); box-shadow: 0 0 18px 4px var(--gold); opacity: 0; }
+.scan-preview.busy .scan-line { opacity: 1; animation: scanSweep 1.7s ease-in-out infinite; }
+@keyframes scanSweep { 0% { top: 0; } 50% { top: calc(100% - 3px); } 100% { top: 0; } }
+.scan-info { position: absolute; left: 0; right: 0; bottom: 0; padding: 22px 14px 12px; background: linear-gradient(transparent, rgba(0,0,0,.72)); color: #fff; font-size: 12.5px; font-weight: 600; display: flex; flex-direction: column; gap: 7px; }
+.scan-bar { height: 4px; border-radius: 4px; background: rgba(255,255,255,.25); overflow: hidden; }
+.scan-bar i { display: block; height: 100%; width: 0; background: var(--gold); transition: width .3s ease; }
+.scan-done { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--gold-ink); display: none; align-items: center; justify-content: center; }
+.scan-done svg { width: 18px; height: 18px; }
+.scan-preview.done .scan-done { display: flex; animation: scanDonePop .5s cubic-bezier(.34,1.56,.64,1); }
+.scan-preview.done .scan-done path { stroke-dasharray: 30; animation: fxDraw .4s .15s ease both; stroke-dashoffset: 30; }
+.scan-preview.fail .scan-info { background: linear-gradient(transparent, rgba(150,40,30,.85)); }
+@keyframes scanDonePop { from { transform: scale(0) rotate(-90deg); } to { transform: none; } }
+.field.autofill { animation: autofill 1.6s ease; border-radius: 14px; }
+@keyframes autofill { 0%,35% { background: var(--gold-soft); box-shadow: 0 0 0 6px var(--gold-soft); } 100% { background: transparent; box-shadow: 0 0 0 6px transparent; } }
+@media (prefers-reduced-motion: reduce) { .scan-line, .scan-lens, .field.autofill { animation: none !important; } }
