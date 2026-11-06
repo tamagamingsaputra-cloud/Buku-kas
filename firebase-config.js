@@ -21,12 +21,12 @@
    ============================================================ */
 
 const firebaseConfig = {
-  apiKey: "GANTI_DENGAN_API_KEY_KAMU",
-  authDomain: "GANTI.firebaseapp.com",
-  projectId: "GANTI_PROJECT_ID",
-  storageBucket: "GANTI.appspot.com",
-  messagingSenderId: "GANTI_SENDER_ID",
-  appId: "GANTI_APP_ID"
+  apiKey: "AIzaSyDjMYp5oi7t2W_P85VNU0_RxHCjkRrl3bU",
+  authDomain: "buku-kas-7d577.firebaseapp.com",
+  projectId: "buku-kas-7d577",
+  storageBucket: "buku-kas-7d577.firebasestorage.app",
+  messagingSenderId: "743371714827",
+  appId: "1:743371714827:web:98f26fd0010efc5392b20e"
 };
 
 window.BUKUKAS_FIREBASE_READY = false;
