@@ -6,14 +6,15 @@
    ============================================================ */
 
 const DB_NAME = 'bukukas-db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 const STORES = {
   wallets: 'wallets',
   categories: 'categories',
   transactions: 'transactions',
   goals: 'goals',
-  budgets: 'budgets'
+  budgets: 'budgets',
+  debts: 'debts'
 };
 
 let _dbPromise = null;
@@ -44,6 +45,9 @@ function openDB() {
       }
       if (!db.objectStoreNames.contains(STORES.goals)) {
         db.createObjectStore(STORES.goals, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(STORES.debts)) {
+        db.createObjectStore(STORES.debts, { keyPath: 'id' });
       }
       if (!db.objectStoreNames.contains(STORES.budgets)) {
         const budgetStore = db.createObjectStore(STORES.budgets, { keyPath: 'id' });
@@ -212,35 +216,47 @@ const DB = {
   },
   deleteBudget: (id) => deleteItem(STORES.budgets, id),
 
+  // Hutang & piutang (hutang saya / hutang orang lain ke saya)
+  getDebts: () => getAll(STORES.debts),
+  saveDebt: (debt) => {
+    if (!debt.id) debt.id = genId();
+    if (!debt.createdAt) debt.createdAt = new Date().toISOString();
+    if (!Array.isArray(debt.payments)) debt.payments = [];
+    return putItem(STORES.debts, debt);
+  },
+  deleteDebt: (id) => deleteItem(STORES.debts, id),
+
   // Backup / restore
   exportAll: async function () {
-    const [wallets, categories, transactions, goals, budgets] = await Promise.all([
+    const [wallets, categories, transactions, goals, budgets, debts] = await Promise.all([
       getAll(STORES.wallets),
       getAll(STORES.categories),
       getAll(STORES.transactions),
       getAll(STORES.goals),
-      getAll(STORES.budgets)
+      getAll(STORES.budgets),
+      getAll(STORES.debts)
     ]);
     return {
       app: 'buku-kas',
       version: DB_VERSION,
       exportedAt: new Date().toISOString(),
-      data: { wallets, categories, transactions, goals, budgets }
+      data: { wallets, categories, transactions, goals, budgets, debts }
     };
   },
 
   importAll: async function (payload) {
     if (!payload || !payload.data) throw new Error('Format backup tidak valid');
-    const { wallets = [], categories = [], transactions = [], goals = [], budgets = [] } = payload.data;
+    const { wallets = [], categories = [], transactions = [], goals = [], budgets = [], debts = [] } = payload.data;
     await clearStore(STORES.wallets);
     await clearStore(STORES.categories);
     await clearStore(STORES.transactions);
     await clearStore(STORES.goals);
     await clearStore(STORES.budgets);
+    await clearStore(STORES.debts);
 
     const db = await openDB();
     const tx = db.transaction(
-      [STORES.wallets, STORES.categories, STORES.transactions, STORES.goals, STORES.budgets],
+      [STORES.wallets, STORES.categories, STORES.transactions, STORES.goals, STORES.budgets, STORES.debts],
       'readwrite'
     );
     wallets.forEach((w) => tx.objectStore(STORES.wallets).put(w));
@@ -248,6 +264,7 @@ const DB = {
     transactions.forEach((t) => tx.objectStore(STORES.transactions).put(t));
     goals.forEach((g) => tx.objectStore(STORES.goals).put(g));
     budgets.forEach((b) => tx.objectStore(STORES.budgets).put(b));
+    debts.forEach((d) => tx.objectStore(STORES.debts).put(d));
 
     return new Promise((resolve, reject) => {
       tx.oncomplete = () => resolve(true);
@@ -261,6 +278,7 @@ const DB = {
     await clearStore(STORES.transactions);
     await clearStore(STORES.goals);
     await clearStore(STORES.budgets);
+    await clearStore(STORES.debts);
     await ensureDefaultCategories();
   },
 

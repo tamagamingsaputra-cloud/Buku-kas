@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
 <title>Buku Kas — Manajemen Keuangan Pribadi</title>
-<meta name="theme-color" content="#12151A" />
+<meta name="theme-color" content="#0D1110" />
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="Buku Kas" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -53,7 +53,7 @@
           <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
           <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
           <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
-          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
           <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           </g>
@@ -62,7 +62,7 @@
           <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
           <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
           <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
-          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
           <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           </g>
@@ -71,7 +71,7 @@
           <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
           <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
           <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
-          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
           <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           </g>
@@ -129,15 +129,17 @@
 
   <!-- ===================== HEADER ===================== -->
   <header class="app-header">
-    <div class="app-header-eyebrow">Manajemen Keuangan Pribadi</div>
-    <div class="app-header-row">
-      <h1 class="app-title">Buku Kas</h1>
-      <div class="app-header-actions">
-        <button class="icon-btn" id="btn-theme-toggle" aria-label="Ganti tema" title="Ganti tema">
-          <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-          <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </button>
-      </div>
+    <button class="hdr-user" id="hdr-user" type="button" aria-label="Buka akun">
+      <span class="hdr-hello" id="hdr-hello">Selamat datang</span>
+      <span class="hdr-name" id="hdr-name">Buku Kas</span>
+    </button>
+    <div class="hdr-actions">
+      <button class="hdr-bell" id="btn-bell" type="button" aria-label="Pengingat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path class="bell-body" d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9Z"/><path class="bell-clapper" d="M10 19a2 2 0 0 0 4 0"/></svg>
+        <span class="hdr-badge" id="bell-badge" hidden>0</span>
+      </button>
+      <button class="hdr-daftar" id="btn-hdr-daftar" type="button">Daftar</button>
+      <button class="hdr-avatar" id="btn-hdr-avatar" type="button" aria-label="Akun saya" hidden>A</button>
     </div>
   </header>
 
@@ -157,7 +159,7 @@
           <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
           <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
           <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
-          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
           <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           </g></g>
@@ -166,7 +168,7 @@
           <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
           <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
           <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
-          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
           <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           </g></g>
@@ -175,7 +177,7 @@
           <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
           <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
           <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
-          <text x="130" y="87.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
           <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
           </g></g>
@@ -249,69 +251,76 @@
     <!-- ---------- DASHBOARD ---------- -->
     <section class="view" id="view-dashboard" data-view="dashboard">
 
-      <!-- Pemberitahuan / insight ringkas -->
+      <!-- Insight ringkas -->
       <div class="insight-banner" id="dash-insight-banner">
         <span class="insight-banner-icon" id="dash-insight-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 0 0 2 2Zm6-6v-5a6 6 0 0 0-5-5.91V4a1 1 0 1 0-2 0v1.09A6 6 0 0 0 6 11v5l-1.7 1.7a1 1 0 0 0 .7 1.7h14a1 1 0 0 0 .7-1.7Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
         </span>
         <span class="insight-banner-text" id="dash-insight-text">Belum ada transaksi bulan ini.</span>
       </div>
 
       <div class="balance-card">
-        <div class="balance-card-texture"></div>
-        <div class="balance-label">SALDO SAAT INI</div>
+        <div class="balance-label">Total Saldo</div>
         <div class="balance-amount" id="dash-balance">Rp0</div>
-      </div>
-
-      <!-- Ringkasan bulan ini: 2x2 stat grid -->
-      <div class="dash-stat-grid">
-        <div class="dash-stat-card">
-          <span class="dash-stat-icon dash-stat-icon-expense">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-          </span>
-          <span class="dash-stat-label">Pengeluaran</span>
-          <span class="dash-stat-value" id="dash-expense">Rp0</span>
-        </div>
-        <div class="dash-stat-card">
-          <span class="dash-stat-icon dash-stat-icon-income">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-          </span>
-          <span class="dash-stat-label">Pemasukan</span>
-          <span class="dash-stat-value" id="dash-income">Rp0</span>
-        </div>
-        <div class="dash-stat-card">
-          <span class="dash-stat-icon dash-stat-icon-saving">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 5.5c-1.4 0-2.6 1-3 2-3.4-1.3-10-.2-10 4.7 0 1.7.3 2.8 2 4V20h4v-2h3v2h4v-3.8c.9-.5 1.6-1.1 2-2.2h2v-4h-2c-.2-.9-.6-1.5-1-2V5.5Z"/></svg>
-          </span>
-          <span class="dash-stat-label">Tabungan Tersimpan</span>
-          <span class="dash-stat-value" id="dash-saving">Rp0</span>
-        </div>
-        <div class="dash-stat-card dash-stat-card-budget">
-          <span class="dash-stat-icon dash-stat-icon-budget" id="dash-budget-ring">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M8 16h5"/></svg>
-          </span>
-          <span class="dash-stat-label">Anggaran Terpakai</span>
-          <span class="dash-stat-value" id="dash-budget-pct">0%</span>
-          <div class="dash-stat-bar-track"><div class="dash-stat-bar-fill" id="dash-budget-bar"></div></div>
-          <span class="dash-stat-sub" id="dash-budget-sub">Rp0 dari Rp0</span>
+        <div class="balance-flow">
+          <div class="flow-item">
+            <span class="flow-ic flow-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span>
+            <span class="flow-text"><span class="flow-label">Pemasukan</span><span class="flow-value" id="dash-income">Rp0</span></span>
+          </div>
+          <div class="flow-item">
+            <span class="flow-ic flow-out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span>
+            <span class="flow-text"><span class="flow-label">Pengeluaran</span><span class="flow-value" id="dash-expense">Rp0</span></span>
+          </div>
         </div>
       </div>
 
-      <button class="dash-saving-link" data-nav="target">
-        <span class="dsl-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle class="dsl-coin" cx="11" cy="3.6" r="1.9"/>
-            <path d="M19 6.5c-1.4 0-2.6 1-3 2-3.4-1.3-10-.2-10 4.7 0 1.7.3 2.8 2 4V21h4v-2h3v2h4v-3.8c.9-.5 1.6-1.1 2-2.2h2v-4h-2c-.2-.9-.6-1.5-1-2V6.5Z"/>
-            <circle cx="16" cy="12" r=".7" fill="currentColor" stroke="none"/>
-            <path d="M2 11v1.2c0 1 .8 1.8 1.8 1.8H5"/>
-          </svg>
-        </span>
-        <span class="dsl-text">
-          <span class="dsl-title">Tabungan</span>
-          <span class="dsl-desc">Pantau target dan setoran tabunganmu</span>
-        </span>
-        <svg class="dsl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-      </button>
+      <!-- Pengingat hutang (muncul hanya jika ada) -->
+      <div class="remind-card" id="dash-remind-card" hidden>
+        <div class="remind-head">
+          <span class="remind-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Pengingat
+          </span>
+          <button class="link-btn" id="btn-remind-all" type="button">Lihat semua</button>
+        </div>
+        <ul class="remind-list" id="dash-remind-list"></ul>
+      </div>
+
+      <!-- Pintasan -->
+      <div class="quick-grid">
+        <button class="quick-card" type="button" data-nav="target" data-fx="coin">
+          <span class="qc-icon qc-saving">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle class="qc-coin" cx="11" cy="3.6" r="1.9"/>
+              <path d="M19 6.5c-1.4 0-2.6 1-3 2-3.4-1.3-10-.2-10 4.7 0 1.7.3 2.8 2 4V21h4v-2h3v2h4v-3.8c.9-.5 1.6-1.1 2-2.2h2v-4h-2c-.2-.9-.6-1.5-1-2V6.5Z"/>
+              <circle cx="16" cy="12" r=".7" fill="currentColor" stroke="none"/>
+            </svg>
+          </span>
+          <span class="qc-label">Tabungan</span>
+          <span class="qc-value" id="dash-saving">Rp0</span>
+          <span class="qc-desc">Pantau target &amp; setoran</span>
+        </button>
+        <button class="quick-card" type="button" data-nav="hutang" data-fx="swap">
+          <span class="qc-icon qc-debt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path class="qc-arrow-a" d="M4 8h13M13 4l4 4-4 4"/>
+              <path class="qc-arrow-b" d="M20 16H7M11 12l-4 4 4 4"/>
+            </svg>
+          </span>
+          <span class="qc-label">Hutang &amp; Piutang</span>
+          <span class="qc-value" id="dash-debt-owe">Rp0</span>
+          <span class="qc-desc" id="dash-debt-sub">Belum ada catatan</span>
+        </button>
+      </div>
+
+      <div class="budget-wide">
+        <div class="bw-top">
+          <span class="bw-label">Anggaran terpakai</span>
+          <span class="bw-pct" id="dash-budget-pct">0%</span>
+        </div>
+        <div class="dash-stat-bar-track"><div class="dash-stat-bar-fill" id="dash-budget-bar"></div></div>
+        <span class="dash-stat-sub" id="dash-budget-sub">Rp0 dari Rp0</span>
+      </div>
 
       <div class="card">
         <div class="card-header">
@@ -471,6 +480,45 @@
       </div>
     </section>
 
+    <!-- ---------- HUTANG & PIUTANG ---------- -->
+    <section class="view" id="view-hutang" data-view="hutang">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="dashboard" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 class="view-title">Hutang &amp; Piutang</h2>
+        <button class="btn-outline-sm" id="btn-debt-add" type="button">+ Catat</button>
+      </div>
+
+      <div class="debt-summary">
+        <div class="ds-card ds-owe">
+          <span class="ds-label">Hutang Saya</span>
+          <span class="ds-value" id="ds-owe">Rp0</span>
+          <span class="ds-sub" id="ds-owe-sub">0 catatan</span>
+        </div>
+        <div class="ds-card ds-lent">
+          <span class="ds-label">Piutang</span>
+          <span class="ds-value" id="ds-lent">Rp0</span>
+          <span class="ds-sub" id="ds-lent-sub">0 catatan</span>
+        </div>
+      </div>
+
+      <div class="segmented" id="debt-filter">
+        <button type="button" class="segment active" data-debt-filter="all">Semua</button>
+        <button type="button" class="segment" data-debt-filter="owe">Hutang Saya</button>
+        <button type="button" class="segment" data-debt-filter="lent">Piutang</button>
+      </div>
+
+      <ul class="debt-list" id="debt-list"></ul>
+      <div class="empty-state" id="debt-empty">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13M13 4l4 4-4 4M20 16H7M11 12l-4 4 4 4"/></svg>
+        </div>
+        <p>Belum ada catatan hutang atau piutang.</p>
+        <p class="empty-sub">Ketuk "+ Catat" untuk menambahkan.</p>
+      </div>
+    </section>
+
     <!-- ---------- LAINNYA (menu) ---------- -->
     <section class="view" id="view-lainnya" data-view="lainnya">
       <h2 class="view-title">Lainnya</h2>
@@ -480,6 +528,14 @@
           <span class="menu-item-text">
             <span class="menu-item-title">Akun</span>
             <span class="menu-item-desc" id="akun-menu-desc">Masuk untuk menyimpan data ke cloud</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="hutang">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13M13 4l4 4-4 4M20 16H7M11 12l-4 4 4 4"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Hutang &amp; Piutang</span>
+            <span class="menu-item-desc">Catat hutangmu dan uang yang dipinjam orang</span>
           </span>
           <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
         </button>
@@ -527,40 +583,11 @@
         <h2 class="view-title">Akun</h2>
       </div>
 
-      <!-- Belum login: form Masuk / Daftar -->
+      <!-- Belum login -->
       <div class="card" id="akun-auth-card">
-        <div class="segmented" id="auth-mode-segmented">
-          <button type="button" class="segment active" data-auth-mode="login">Masuk</button>
-          <button type="button" class="segment" data-auth-mode="register">Daftar</button>
-        </div>
-
-        <p class="field-hint" id="akun-cloud-hint" style="margin-bottom:14px;">Masuk untuk menyimpan cadangan data ke cloud, supaya datamu tetap ada walau ganti HP atau akun Google.</p>
-
-        <form id="form-auth">
-          <label class="field" id="auth-username-wrap" hidden>
-            <span class="field-label">Username</span>
-            <input type="text" id="auth-username" placeholder="Nama pengguna" maxlength="24" autocomplete="username" />
-          </label>
-          <label class="field">
-            <span class="field-label">Email</span>
-            <input type="email" id="auth-email" placeholder="nama@email.com" required autocomplete="email" />
-          </label>
-          <label class="field">
-            <span class="field-label">Password</span>
-            <input type="password" id="auth-password" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="current-password" />
-          </label>
-          <p class="auth-error" id="auth-error"></p>
-          <button type="submit" class="btn-primary" id="auth-submit-btn">Masuk</button>
-        </form>
-
-        <div class="auth-divider"><span>atau</span></div>
-
-        <button type="button" class="btn-google" id="btn-google-signin">
-          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.92l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.29v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29v-3.1H1.29A12 12 0 0 0 0 12c0 1.93.46 3.76 1.29 5.39z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.78l3.44-3.44C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.29 6.61l4 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg>
-          Lanjutkan dengan Google
-        </button>
-
-        <p class="field-hint" style="margin-top:14px;text-align:center;">Fitur ini butuh setup Firebase sendiri — lihat README-FIREBASE.md. Tanpa itu, tombol di atas akan menampilkan pesan error.</p>
+        <p class="settings-row-title">Kamu belum masuk</p>
+        <p class="settings-row-desc" style="margin-top:4px;">Daftar atau masuk supaya datamu tersimpan di cloud dan tetap aman walau ganti HP.</p>
+        <button type="button" class="btn-primary" id="btn-akun-open-auth" style="margin-top:14px;">Daftar / Masuk</button>
       </div>
 
       <!-- Sudah login -->
@@ -573,6 +600,10 @@
           </div>
         </div>
         <div class="settings-actions" style="margin-top:16px;">
+          <button class="btn-secondary" id="btn-edit-username">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            Ubah Username
+          </button>
           <button class="btn-secondary" id="btn-sync-push">
             <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
             Sinkronkan ke Cloud
@@ -680,6 +711,18 @@
             <div class="settings-row-desc">Beralih antara mode gelap dan terang</div>
           </div>
           <button class="switch" id="settings-theme-switch" role="switch" aria-checked="true">
+            <span class="switch-knob"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-title">Notifikasi Pengingat</div>
+            <div class="settings-row-desc" id="notif-desc">Ingatkan jatuh tempo hutang &amp; piutang saat aplikasi dibuka</div>
+          </div>
+          <button class="switch" id="settings-notif-switch" role="switch" aria-checked="false">
             <span class="switch-knob"></span>
           </button>
         </div>
@@ -983,6 +1026,177 @@
         <button type="submit" class="btn-primary" id="gt-submit-btn">Setor Sekarang</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: DAFTAR / MASUK ===================== -->
+<div class="modal-overlay" id="modal-auth">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="auth-modal-title">Daftar atau Masuk</h3>
+      <button class="modal-close" data-close-modal="modal-auth" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="auth-step-choose">
+        <p class="field-hint" style="margin-bottom:14px;">Simpan datamu di cloud agar tetap ada walau ganti HP.</p>
+        <button type="button" class="btn-google" id="btn-sheet-google"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.92l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.29v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29v-3.1H1.29A12 12 0 0 0 0 12c0 1.93.46 3.76 1.29 5.39z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.78l3.44-3.44C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.29 6.61l4 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg>Lanjutkan dengan Google</button>
+        <button type="button" class="btn-secondary" id="btn-sheet-email" style="margin-top:10px;">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          Lanjutkan dengan Email
+        </button>
+        <p class="auth-error" id="auth-error-choose"></p>
+      </div>
+      <form id="auth-step-email" hidden>
+        <div class="segmented" id="sheet-auth-seg">
+          <button type="button" class="segment active" data-sheet-mode="login">Masuk</button>
+          <button type="button" class="segment" data-sheet-mode="register">Daftar</button>
+        </div>
+        <label class="field" id="sheet-username-wrap" hidden>
+          <span class="field-label">Username</span>
+          <input type="text" id="sheet-username" placeholder="Nama panggilanmu" maxlength="24" autocomplete="nickname" />
+        </label>
+        <label class="field">
+          <span class="field-label">Email</span>
+          <input type="email" id="sheet-email" placeholder="nama@email.com" required autocomplete="email" />
+        </label>
+        <label class="field">
+          <span class="field-label">Password</span>
+          <input type="password" id="sheet-password" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="current-password" />
+        </label>
+        <p class="auth-error" id="sheet-auth-error"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btn-sheet-back">Kembali</button>
+          <button type="submit" class="btn-primary" id="sheet-submit">Masuk</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: USERNAME ===================== -->
+<div class="modal-overlay" id="modal-username">
+  <div class="modal-sheet modal-sheet-sm">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Silakan isi username</h3>
+    </div>
+    <form id="form-username" class="modal-body">
+      <p class="field-hint">Nama ini akan ditampilkan di dashboard.</p>
+      <label class="field">
+        <span class="field-label">Username</span>
+        <input type="text" id="username-input" placeholder="Contoh: Tama" maxlength="24" required autocomplete="nickname" />
+        <span class="field-hint" id="username-error" style="color:var(--danger)"></span>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btn-username-skip">Lewati</button>
+        <button type="submit" class="btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: HUTANG ===================== -->
+<div class="modal-overlay" id="modal-debt">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="debt-modal-title">Catat Hutang</h3>
+      <button class="modal-close" data-close-modal="modal-debt" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-debt" class="modal-body">
+      <input type="hidden" id="debt-id" />
+      <div class="segmented" id="debt-type-seg">
+        <button type="button" class="segment active" data-debt-type="owe">Hutang Saya</button>
+        <button type="button" class="segment" data-debt-type="lent">Piutang</button>
+      </div>
+      <p class="field-hint" id="debt-type-hint">Uang yang kamu pinjam dari orang lain.</p>
+      <label class="field">
+        <span class="field-label" id="debt-person-label">Dipinjam dari</span>
+        <input type="text" id="debt-person" placeholder="Nama orang" required maxlength="40" />
+      </label>
+      <label class="field">
+        <span class="field-label">Nominal</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="debt-amount" placeholder="0" required />
+        </div>
+      </label>
+      <label class="field">
+        <span class="field-label">Jatuh Tempo (opsional)</span>
+        <input type="date" id="debt-due" />
+      </label>
+      <label class="field">
+        <span class="field-label">Ingatkan</span>
+        <select id="debt-remind">
+          <option value="0">Pada hari jatuh tempo</option>
+          <option value="1">1 hari sebelumnya</option>
+          <option value="3">3 hari sebelumnya</option>
+          <option value="7">7 hari sebelumnya</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="field-label">Catatan (opsional)</span>
+        <input type="text" id="debt-note" placeholder="Untuk apa?" maxlength="80" />
+      </label>
+      <div class="debt-history" id="debt-history" hidden>
+        <span class="field-label">Riwayat Pembayaran</span>
+        <ul class="debt-pay-list" id="debt-pay-list"></ul>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="debt-delete-btn" hidden>Hapus</button>
+        <button type="submit" class="btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: BAYAR / TERIMA ===================== -->
+<div class="modal-overlay" id="modal-debt-pay">
+  <div class="modal-sheet modal-sheet-sm">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="dp-title">Catat Pembayaran</h3>
+      <button class="modal-close" data-close-modal="modal-debt-pay" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-debt-pay" class="modal-body">
+      <input type="hidden" id="dp-debt-id" />
+      <p class="field-hint" id="dp-info"></p>
+      <label class="field">
+        <span class="field-label">Nominal</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="dp-amount" placeholder="0" required />
+        </div>
+        <button type="button" class="link-btn" id="dp-full" style="margin-top:6px;align-self:flex-start;">Lunasi semua</button>
+      </label>
+      <label class="field">
+        <span class="field-label">Tanggal</span>
+        <input type="date" id="dp-date" required />
+      </label>
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary" id="dp-submit">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: PENGINGAT ===================== -->
+<div class="modal-overlay" id="modal-reminders">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Pengingat</h3>
+      <button class="modal-close" data-close-modal="modal-reminders" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body">
+      <ul class="remind-list" id="reminder-sheet-list"></ul>
+      <div class="empty-state" id="reminder-sheet-empty">
+        <p>Tidak ada pengingat saat ini.</p>
+        <p class="empty-sub">Tambahkan jatuh tempo pada catatan hutang untuk mendapat pengingat.</p>
+      </div>
+      <button type="button" class="btn-secondary" id="btn-open-hutang" style="margin-top:12px;">Buka Hutang &amp; Piutang</button>
+    </div>
   </div>
 </div>
 

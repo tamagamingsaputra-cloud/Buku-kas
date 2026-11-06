@@ -89,6 +89,28 @@
       }
     },
 
+    /** Simpan username ke profil Auth + Firestore supaya ikut ke perangkat lain. */
+    setUsername: async function (name) {
+      if (!ready()) return;
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+      await user.updateProfile({ displayName: name });
+      await firebase.firestore().collection('users').doc(user.uid).set({
+        username: name,
+        usernameSet: true
+      }, { merge: true });
+    },
+
+    /** Ambil username yang pernah disimpan pengguna (null jika belum pernah). */
+    getUsername: async function () {
+      if (!ready()) return null;
+      const user = firebase.auth().currentUser;
+      if (!user) return null;
+      const doc = await firebase.firestore().collection('users').doc(user.uid).get();
+      const data = doc.exists ? doc.data() : null;
+      return data && data.usernameSet && data.username ? data.username : null;
+    },
+
     logout: async function () {
       if (!ready()) return;
       await firebase.auth().signOut();

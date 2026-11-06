@@ -18,13 +18,14 @@
     transactions: [],
     goals: [],
     budgets: [],
+    debts: [],
     currentView: 'dashboard',
     txFilter: 'all',
     catTypeFilter: 'expense',
     confirmCallback: null
   };
 
-  const CHART_PALETTE = ['#D9AE60', '#57B589', '#6E8FE2', '#E2685B', '#B37FE0', '#4FC1C7', '#E0A03F', '#9AA3B2'];
+  const CHART_PALETTE = ['#5FD3A8', '#57B589', '#6E8FE2', '#E2685B', '#B37FE0', '#4FC1C7', '#E0A03F', '#9AA3B2'];
 
   /* ---------------------------------------------------------
      IKON KATEGORI — set ikon & warna custom per kategori,
@@ -50,7 +51,7 @@
     'Pendidikan': { color: '#5B8DEF', icon: 'cap' },
     'Kesehatan': { color: '#EB5757', icon: 'heart' },
     'Hiburan': { color: '#E85C8A', icon: 'film' },
-    'Tabungan': { color: '#D9AE60', icon: 'piggy' },
+    'Tabungan': { color: '#2DD4BF', icon: 'piggy' },
     'Gaji': { color: '#27AE60', icon: 'briefcase' },
     'Bonus': { color: '#2DD4BF', icon: 'gift' },
     'Lainnya': { color: '#9AA3B2', icon: 'dots' }
@@ -580,14 +581,19 @@
   function handleAuthState(user) {
     currentAuthUser = user;
     updateAkunUI(user);
+    updateHeader();
     if (!authResolved) {
       authResolved = true;
       tryLeaveSplash();
+      if (user) afterLogin(user, false);
       return;
     }
     if (user) {
+      const wasIn = appEntered;
       if (!appEntered) enterApp(true);
+      afterLogin(user, !wasIn);
     } else {
+      promptedUid = null;
       setGuest(false);
       setAuthModeLogin('login');
       showLoginScreen();
@@ -600,8 +606,8 @@
     const drop = document.getElementById('lg-drop');
     const amb = document.getElementById('lg-ambient');
     if (!drop || !amb || drop.childElementCount) return;
-    const COIN = '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="url(#gCoin)" stroke="#B9801A" stroke-width="1.6"/><circle cx="14" cy="14" r="10.6" fill="none" stroke="#FFF1B8" stroke-width="1.2" stroke-dasharray="1.3 1.7" opacity=".85"/><circle cx="14" cy="14" r="8" fill="none" stroke="#C98A16" stroke-width="1.1"/><text x="14.6" y="19.1" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="12" fill="#fff" opacity=".55">$</text><text x="14" y="18.5" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="12" fill="#8A5F0A">$</text><path d="M7.4 9.6a8 8 0 0 1 5-3.1" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></svg>';
-    const BILL = '<svg viewBox="0 0 40 24"><rect x="1" y="1" width="38" height="22" rx="4" fill="url(#gBill)" stroke="#16243B" stroke-width="2"/><rect x="4" y="4" width="32" height="16" rx="2" fill="none" stroke="#3FBF93" stroke-width=".9" opacity=".8"/><path d="M7 12h6M27 12h6" stroke="#3FBF93" stroke-width="1.4" stroke-linecap="round"/><circle cx="20" cy="12" r="6.2" fill="url(#gMint)" stroke="#16243B" stroke-width="1.6"/><text x="20" y="15.2" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="8.5" fill="#16243B">$</text></svg>';
+    const COIN = '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="url(#gCoin)" stroke="#B9801A" stroke-width="1.6"/><circle cx="14" cy="14" r="10.6" fill="none" stroke="#FFF1B8" stroke-width="1.2" stroke-dasharray="1.3 1.7" opacity=".85"/><circle cx="14" cy="14" r="8" fill="none" stroke="#C98A16" stroke-width="1.1"/><text x="14.6" y="19.1" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="12" fill="#fff" opacity=".55">$</text><text x="14" y="18.5" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="12" fill="#8A5F0A">$</text><path d="M7.4 9.6a8 8 0 0 1 5-3.1" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></svg>';
+    const BILL = '<svg viewBox="0 0 40 24"><rect x="1" y="1" width="38" height="22" rx="4" fill="url(#gBill)" stroke="#16243B" stroke-width="2"/><rect x="4" y="4" width="32" height="16" rx="2" fill="none" stroke="#3FBF93" stroke-width=".9" opacity=".8"/><path d="M7 12h6M27 12h6" stroke="#3FBF93" stroke-width="1.4" stroke-linecap="round"/><circle cx="20" cy="12" r="6.2" fill="url(#gMint)" stroke="#16243B" stroke-width="1.6"/><text x="20" y="15.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="8.5" fill="#16243B">$</text></svg>';
 
     // Aliran masuk ke dompet: 9 jalur sejajar, simetris kiri-kanan dari tengah.
     // Jalur & jeda dibuat deterministik (bukan acak) supaya tidak ada sisi yang kosong.
@@ -644,16 +650,6 @@
   let authMode = 'login';
   let authModeLogin = 'login'; // Untuk login screen (halaman pertama)
 
-  function setAuthMode(mode) {
-    authMode = mode;
-    document.querySelectorAll('#auth-mode-segmented .segment').forEach((seg) => {
-      seg.classList.toggle('active', seg.dataset.authMode === mode);
-    });
-    document.getElementById('auth-username-wrap').hidden = mode !== 'register';
-    document.getElementById('auth-submit-btn').textContent = mode === 'register' ? 'Daftar' : 'Masuk';
-    document.getElementById('auth-error').textContent = '';
-  }
-
   function setAuthModeLogin(mode) {
     authModeLogin = mode;
     document.querySelectorAll('#auth-mode-segmented-login .segment').forEach((seg) => {
@@ -677,7 +673,7 @@
     if (user) {
       authCard.hidden = true;
       profileCard.hidden = false;
-      const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Pengguna');
+      const name = currentUsername() || 'Pengguna';
       document.getElementById('akun-profile-name').textContent = name;
       document.getElementById('akun-profile-email').textContent = user.email || '';
       document.getElementById('akun-avatar').textContent = name.charAt(0).toUpperCase();
@@ -686,31 +682,6 @@
       authCard.hidden = false;
       profileCard.hidden = true;
       if (menuDesc) menuDesc.textContent = 'Masuk untuk menyimpan data ke cloud';
-    }
-  }
-
-  async function handleAuthSubmit(e) {
-    e.preventDefault();
-    const errorEl = document.getElementById('auth-error');
-    errorEl.textContent = '';
-    const email = document.getElementById('auth-email').value.trim();
-    const password = document.getElementById('auth-password').value;
-    const username = document.getElementById('auth-username').value.trim();
-    const submitBtn = document.getElementById('auth-submit-btn');
-    submitBtn.disabled = true;
-    try {
-      if (authMode === 'register') {
-        await CloudSync.register(username, email, password);
-        showToast('Akun berhasil dibuat.');
-      } else {
-        await CloudSync.login(email, password);
-        showToast('Berhasil masuk.');
-      }
-      document.getElementById('form-auth').reset();
-    } catch (err) {
-      errorEl.textContent = err.message;
-    } finally {
-      submitBtn.disabled = false;
     }
   }
 
@@ -739,17 +710,6 @@
     } finally {
       submitBtn.disabled = false;
       label.textContent = idleText;
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    const errorEl = document.getElementById('auth-error');
-    errorEl.textContent = '';
-    try {
-      await CloudSync.loginWithGoogle();
-      showToast('Berhasil masuk dengan Google.');
-    } catch (err) {
-      errorEl.textContent = err.message;
     }
   }
 
@@ -814,11 +774,6 @@
     buildLoginRain();
 
     // Binding untuk Akun view (dalam app)
-    document.querySelectorAll('#auth-mode-segmented .segment').forEach((seg) => {
-      seg.addEventListener('click', () => setAuthMode(seg.dataset.authMode));
-    });
-    document.getElementById('form-auth').addEventListener('submit', handleAuthSubmit);
-    document.getElementById('btn-google-signin').addEventListener('click', handleGoogleSignIn);
     document.getElementById('btn-sync-push').addEventListener('click', handleSyncPush);
     document.getElementById('btn-sync-pull').addEventListener('click', handleSyncPull);
     document.getElementById('btn-akun-logout').addEventListener('click', async () => {
@@ -843,14 +798,27 @@
      DATA LOADING
   --------------------------------------------------------- */
   async function reloadAll() {
-    const [wallets, categories, transactions, goals, budgets] = await Promise.all([
-      DB.getWallets(), DB.getCategories(), DB.getTransactions(), DB.getGoals(), DB.getBudgets()
+    const [wallets, categories, transactions, goals, budgets, debts] = await Promise.all([
+      DB.getWallets(), DB.getCategories(), DB.getTransactions(), DB.getGoals(), DB.getBudgets(), DB.getDebts()
     ]);
+    const first = !state._loaded;
+    const idOf = (x) => x.id;
+    const fresh = {
+      tx: first ? [] : diffNew(state.transactions, transactions, idOf),
+      wallet: first ? [] : diffNew(state.wallets, wallets, idOf),
+      goal: first ? [] : diffNew(state.goals, goals, idOf),
+      cat: first ? [] : diffNew(state.categories, categories, idOf),
+      budget: first ? [] : diffNew(state.budgets, budgets, idOf).map((id) => ({ cat: (budgets.find((b) => b.id === id) || {}).categoryId }))
+    };
+    const total = Object.keys(fresh).reduce((s, k) => s + fresh[k].length, 0);
+    state.newIds = total > 0 && total <= 4 ? fresh : null; // impor/sinkron besar tidak dianimasikan
+    state._loaded = true;
     state.wallets = wallets;
     state.categories = categories;
     state.transactions = transactions.sort((a, b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt));
     state.goals = goals;
     state.budgets = budgets;
+    state.debts = debts;
   }
 
   function categoryById(id) { return state.categories.find((c) => c.id === id); }
@@ -921,13 +889,21 @@
      NAVIGATION
   --------------------------------------------------------- */
   function switchView(name) {
+    const changed = state.currentView !== name;
     state.currentView = name;
     document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.dataset.view === name));
-    // Tabungan dibuka dari Dasbor, jadi tab Dasbor tetap menyala di halaman itu
-    const navName = name === 'target' ? 'dashboard' : name;
+    // Tabungan & Hutang dibuka dari Dasbor, jadi tab Dasbor tetap menyala di halaman itu
+    const navName = (name === 'target' || name === 'hutang') ? 'dashboard' : name;
     document.querySelectorAll('.nav-item').forEach((n) => n.classList.toggle('active', n.dataset.nav === navName));
     document.getElementById('app-main').scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     renderView(name);
+    if (changed) {
+      const el = document.getElementById('view-' + name);
+      if (el) {
+        el.classList.remove('entering'); void el.offsetWidth; el.classList.add('entering');
+        setTimeout(() => el.classList.remove('entering'), 900);
+      }
+    }
   }
 
   function renderView(name) {
@@ -938,6 +914,9 @@
     else if (name === 'kategori') renderKategori();
     else if (name === 'anggaran') renderAnggaran();
     else if (name === 'analisa') renderAnalisa();
+    else if (name === 'hutang') renderHutang();
+    updateReminderUI();
+    flashNew();
   }
 
   function renderAll() {
@@ -949,10 +928,17 @@
   --------------------------------------------------------- */
   function renderDashboard() {
     const now = new Date();
-    document.getElementById('dash-balance').textContent = formatRupiah(totalBalance());
-    document.getElementById('dash-income').textContent = formatRupiah(monthIncome(now));
-    document.getElementById('dash-expense').textContent = formatRupiah(monthExpense(now));
-    document.getElementById('dash-saving').textContent = formatRupiah(totalSavings());
+    countUp(document.getElementById('dash-balance'), totalBalance());
+    countUp(document.getElementById('dash-income'), monthIncome(now));
+    countUp(document.getElementById('dash-expense'), monthExpense(now));
+    countUp(document.getElementById('dash-saving'), totalSavings());
+    const activeDebts = state.debts.filter((d) => debtRemaining(d) > 0);
+    const oweTotal = activeDebts.filter((d) => d.type === 'owe').reduce((s, d) => s + debtRemaining(d), 0);
+    const lentTotal = activeDebts.filter((d) => d.type === 'lent').reduce((s, d) => s + debtRemaining(d), 0);
+    countUp(document.getElementById('dash-debt-owe'), oweTotal);
+    document.getElementById('dash-debt-sub').textContent = activeDebts.length
+      ? (lentTotal > 0 ? 'Piutang ' + formatRupiah(lentTotal) : activeDebts.length + ' catatan aktif')
+      : 'Belum ada catatan';
     document.getElementById('dash-chart-month').textContent = monthLabel(now);
     document.getElementById('dash-trend-month').textContent = monthLabel(now);
 
@@ -1089,7 +1075,7 @@
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('Pengeluaran', cx, cy - 8);
-      ctx.font = '700 12px Fraunces, serif';
+      ctx.font = '700 12px Inter, sans-serif';
       ctx.fillText(formatRupiah(Math.round(total * progress)), cx, cy + 10);
     }
 
@@ -1155,7 +1141,7 @@
     if (points.length < 2) points.unshift(0);
     const maxVal = Math.max(1, ...points);
 
-    const goldColor = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#D9AE60';
+    const goldColor = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#5FD3A8';
     const faintColor = getComputedStyle(document.documentElement).getPropertyValue('--text-faint').trim() || '#6E7688';
     const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border-soft').trim() || '#232a35';
 
@@ -1418,7 +1404,7 @@
     const maxVal = Math.max(1, ...series.map((s) => Math.max(s.setoran, s.penarikan, s.saldo)));
     const successColor = getComputedStyle(document.documentElement).getPropertyValue('--success').trim() || '#57B589';
     const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger').trim() || '#E2685B';
-    const goldColor = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#D9AE60';
+    const goldColor = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#5FD3A8';
     const faintColor = getComputedStyle(document.documentElement).getPropertyValue('--text-faint').trim() || '#6E7688';
     const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border-soft').trim() || '#232a35';
 
@@ -2263,7 +2249,8 @@
   }
 
   function bindPengaturan() {
-    document.getElementById('btn-theme-toggle').addEventListener('click', toggleTheme);
+    const _tt = document.getElementById('btn-theme-toggle');
+    if (_tt) _tt.addEventListener('click', toggleTheme);
     document.getElementById('settings-theme-switch').addEventListener('click', toggleTheme);
     document.getElementById('btn-export').addEventListener('click', handleExport);
     document.getElementById('btn-import').addEventListener('click', handleImportClick);
@@ -2279,6 +2266,604 @@
       closeModal('modal-confirm');
       if (cb) await cb();
     });
+  }
+
+  /* ---------------------------------------------------------
+     ANIMASI — ripple tombol, hitung naik, perayaan, item baru
+  --------------------------------------------------------- */
+  const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let lastPointer = { x: window.innerWidth / 2, y: window.innerHeight * 0.6 };
+
+  const RIPPLE_SEL = '.btn-primary,.btn-secondary,.btn-danger,.btn-danger-ghost,.btn-outline-sm,.btn-google,.quick-card,.menu-item,.hdr-daftar,.hdr-avatar,.hdr-bell,.di-pay,.segment,.back-btn,.lg-btn,.lg-google,.lg-guest,.link-btn,.goal-quick-btn,.chip,.keypad-key,.key,.modal-close';
+
+  function bindFx() {
+    document.addEventListener('pointerdown', (e) => {
+      lastPointer = { x: e.clientX, y: e.clientY };
+      if (REDUCED) return;
+      const el = e.target.closest(RIPPLE_SEL);
+      if (!el || el.disabled) return;
+      const r = el.getBoundingClientRect();
+      const size = Math.max(r.width, r.height) * 1.6;
+      const dot = document.createElement('span');
+      dot.className = 'fx-ripple';
+      dot.style.width = dot.style.height = size + 'px';
+      dot.style.left = (e.clientX - r.left - size / 2) + 'px';
+      dot.style.top = (e.clientY - r.top - size / 2) + 'px';
+      el.classList.add('has-ripple');
+      el.appendChild(dot);
+      setTimeout(() => dot.remove(), 650);
+    }, { passive: true });
+
+    // efek khusus: lonceng berdering saat disentuh, segmen "pop" saat aktif
+    document.addEventListener('click', (e) => {
+      const seg = e.target.closest('.segment');
+      if (seg) { seg.classList.remove('pop-seg'); void seg.offsetWidth; seg.classList.add('pop-seg'); }
+      const bell = e.target.closest('.hdr-bell');
+      if (bell) { bell.classList.remove('ring'); void bell.offsetWidth; bell.classList.add('ring'); }
+      const sw = e.target.closest('.switch');
+      if (sw) { sw.classList.remove('flip'); void sw.offsetWidth; sw.classList.add('flip'); }
+    });
+  }
+
+  function countUp(el, value) {
+    if (!el) return;
+    const from = Number(el.dataset.v);
+    el.dataset.v = String(value);
+    if (REDUCED || !isFinite(from) || from === value) { el.textContent = formatRupiah(value); return; }
+    const t0 = performance.now(), dur = 650;
+    cancelAnimationFrame(el._raf);
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = formatRupiah(from + (value - from) * e);
+      if (p < 1) el._raf = requestAnimationFrame(step);
+    };
+    el._raf = requestAnimationFrame(step);
+  }
+
+  function shake(sel) {
+    const el = typeof sel === 'string' ? document.querySelector(sel) : sel;
+    if (!el) return;
+    el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+  }
+
+  /* Perayaan singkat setiap kali data berhasil ditambahkan.
+     Tiap jenis punya gaya sendiri: koin, cincin, konfeti, ceklis, panah. */
+  function celebrate(kind) {
+    if (REDUCED) return;
+    const layer = document.createElement('div');
+    layer.className = 'fx-layer';
+    const x = lastPointer.x, y = lastPointer.y;
+    const add = (cls, styles, html) => {
+      const s = document.createElement('span');
+      s.className = cls;
+      Object.keys(styles).forEach((k) => s.style.setProperty(k, styles[k]));
+      if (html) s.innerHTML = html;
+      s.style.left = x + 'px'; s.style.top = y + 'px';
+      layer.appendChild(s);
+    };
+    const COLORS = ['#5FD3A8', '#E0A03F', '#6E8FE2', '#E2685B', '#B37FE0', '#4ADE9A'];
+    if (kind === 'coin') {
+      for (let i = 0; i < 9; i++) {
+        const a = (-90 + (i - 4) * 18) * Math.PI / 180, d = 70 + (i % 3) * 26;
+        add('fx-coin', { '--dx': Math.cos(a) * d + 'px', '--dy': Math.sin(a) * d - 30 + 'px', '--dl': i * 28 + 'ms' });
+      }
+    } else if (kind === 'ring') {
+      add('fx-ring', {}); add('fx-ring second', {});
+      add('fx-pop', {}, '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>');
+    } else if (kind === 'confetti') {
+      for (let i = 0; i < 26; i++) {
+        const a = Math.random() * Math.PI * 2, d = 60 + Math.random() * 130;
+        add('fx-conf', { '--dx': Math.cos(a) * d + 'px', '--dy': Math.sin(a) * d - 60 + 'px', '--rot': Math.floor(Math.random() * 720 - 360) + 'deg', '--c': COLORS[i % COLORS.length], '--dl': Math.floor(Math.random() * 120) + 'ms' });
+      }
+    } else if (kind === 'debt') {
+      add('fx-ring', {});
+      add('fx-pop swap', {}, '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13M13 4l4 4-4 4M20 16H7M11 12l-4 4 4 4"/></svg>');
+    } else {
+      add('fx-pop', {}, '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>');
+    }
+    document.body.appendChild(layer);
+    setTimeout(() => layer.remove(), 1400);
+  }
+
+  /* Item yang baru ditambahkan diberi animasi masuk sesuai jenisnya */
+  function flashNew() {
+    const n = state.newIds;
+    if (!n) return;
+    state.newIds = null;
+    const map = [
+      ['tx', '[data-tx-id="%"]', 'anim-tx'],
+      ['wallet', '[data-wallet-id="%"]', 'anim-wallet'],
+      ['goal', '.goal-card[data-goal-id="%"]', 'anim-goal'],
+      ['cat', '.cat-row[data-cat-id="%"]', 'anim-cat'],
+      ['budget', '.budget-set-row[data-cat-id="%"]', 'anim-budget']
+    ];
+    map.forEach(([key, sel, cls]) => {
+      (n[key] || []).forEach((id) => {
+        const target = key === 'budget' ? id.cat : id;
+        document.querySelectorAll(sel.replace('%', target)).forEach((el) => {
+          el.classList.add(cls);
+          setTimeout(() => el.classList.remove(cls), 1600);
+        });
+      });
+    });
+  }
+
+  function diffNew(prev, next, idOf) {
+    if (!prev) return [];
+    const seen = new Set(prev.map(idOf));
+    return next.filter((x) => !seen.has(idOf(x))).map(idOf);
+  }
+
+  /* ---------------------------------------------------------
+     PROFIL / USERNAME + HEADER
+  --------------------------------------------------------- */
+  const PROFILE_KEY = 'bukukas-profile';
+  let pendingUsername = '';
+  let promptedUid = null;
+
+  function loadProfiles() {
+    try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function saveProfileName(uid, name) {
+    const p = loadProfiles();
+    p[uid] = name;
+    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch (e) { /* abaikan */ }
+  }
+  function currentUsername() {
+    if (!currentAuthUser) return '';
+    const saved = loadProfiles()[currentAuthUser.uid];
+    if (saved) return saved;
+    return currentAuthUser.displayName || (currentAuthUser.email ? currentAuthUser.email.split('@')[0] : '');
+  }
+
+  function greetingByTime() {
+    const h = new Date().getHours();
+    if (h < 11) return 'Selamat pagi';
+    if (h < 15) return 'Selamat siang';
+    if (h < 19) return 'Selamat sore';
+    return 'Selamat malam';
+  }
+
+  function updateHeader() {
+    const name = currentUsername();
+    document.getElementById('hdr-hello').textContent = name ? greetingByTime() : 'Selamat datang';
+    document.getElementById('hdr-name').textContent = name ? name : 'Buku Kas';
+    const loggedIn = !!currentAuthUser;
+    document.getElementById('btn-hdr-daftar').hidden = loggedIn;
+    const av = document.getElementById('btn-hdr-avatar');
+    av.hidden = !loggedIn;
+    if (loggedIn) av.textContent = (name || '?').charAt(0).toUpperCase();
+  }
+
+  async function afterLogin(user, animated) {
+    updateHeader();
+    if (!user || promptedUid === user.uid) return;
+    promptedUid = user.uid;
+    if (pendingUsername) {
+      saveProfileName(user.uid, pendingUsername);
+      CloudSync.setUsername(pendingUsername).catch(() => {});
+      pendingUsername = '';
+      updateHeader(); updateAkunUI(user);
+      return;
+    }
+    if (loadProfiles()[user.uid]) return;
+    // perangkat baru: cek apakah username sudah pernah disimpan di cloud
+    try {
+      const cloudName = await CloudSync.getUsername();
+      if (cloudName) {
+        saveProfileName(user.uid, cloudName);
+        updateHeader(); updateAkunUI(user);
+        return;
+      }
+    } catch (e) { /* lanjut minta username */ }
+    setTimeout(() => openUsernameModal(false), animated ? 1500 : 500);
+  }
+
+  function openUsernameModal(isEdit) {
+    const input = document.getElementById('username-input');
+    input.value = isEdit ? currentUsername() : (currentAuthUser && currentAuthUser.displayName) || '';
+    document.getElementById('username-error').textContent = '';
+    document.getElementById('btn-username-skip').textContent = isEdit ? 'Batal' : 'Lewati';
+    openModal('modal-username');
+    setTimeout(() => input.focus(), 350);
+  }
+
+  async function handleUsernameSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('username-input').value.trim().replace(/\s+/g, ' ');
+    const err = document.getElementById('username-error');
+    if (name.length < 2) { err.textContent = 'Username minimal 2 karakter.'; shake('#username-input'); return; }
+    if (!currentAuthUser) { closeModal('modal-username'); return; }
+    saveProfileName(currentAuthUser.uid, name);
+    updateHeader(); updateAkunUI(currentAuthUser);
+    closeModal('modal-username');
+    showToast('Halo, ' + name + '!');
+    celebrate('check');
+    CloudSync.setUsername(name).catch(() => {});
+  }
+
+  /* ---------------------------------------------------------
+     SHEET DAFTAR / MASUK (pojok kanan atas)
+  --------------------------------------------------------- */
+  let sheetMode = 'login';
+  function setSheetMode(mode) {
+    sheetMode = mode;
+    document.querySelectorAll('#sheet-auth-seg .segment').forEach((s) => s.classList.toggle('active', s.dataset.sheetMode === mode));
+    document.getElementById('sheet-username-wrap').hidden = mode !== 'register';
+    document.getElementById('sheet-submit').textContent = mode === 'register' ? 'Daftar' : 'Masuk';
+    document.getElementById('sheet-password').autocomplete = mode === 'register' ? 'new-password' : 'current-password';
+    document.getElementById('sheet-auth-error').textContent = '';
+  }
+  function showAuthStep(step) {
+    document.getElementById('auth-step-choose').hidden = step !== 'choose';
+    document.getElementById('auth-step-email').hidden = step !== 'email';
+    document.getElementById('auth-modal-title').textContent = step === 'email' ? (sheetMode === 'register' ? 'Buat Akun' : 'Masuk dengan Email') : 'Daftar atau Masuk';
+  }
+  function openAuthSheet() {
+    setSheetMode('login');
+    showAuthStep('choose');
+    document.getElementById('auth-error-choose').textContent = '';
+    openModal('modal-auth');
+  }
+
+  async function handleSheetGoogle() {
+    const err = document.getElementById('auth-error-choose');
+    err.textContent = '';
+    try {
+      await CloudSync.loginWithGoogle();
+      closeModal('modal-auth');
+      showToast('Berhasil masuk dengan Google.');
+    } catch (e) { err.textContent = e.message; shake('#btn-sheet-google'); }
+  }
+
+  async function handleSheetSubmit(e) {
+    e.preventDefault();
+    const err = document.getElementById('sheet-auth-error');
+    err.textContent = '';
+    const email = document.getElementById('sheet-email').value.trim();
+    const password = document.getElementById('sheet-password').value;
+    const username = document.getElementById('sheet-username').value.trim();
+    const btn = document.getElementById('sheet-submit');
+    const idle = sheetMode === 'register' ? 'Daftar' : 'Masuk';
+    btn.disabled = true; btn.textContent = 'Memproses...';
+    try {
+      if (sheetMode === 'register') {
+        pendingUsername = username;
+        await CloudSync.register(username, email, password);
+      } else {
+        await CloudSync.login(email, password);
+      }
+      document.getElementById('auth-step-email').reset();
+      closeModal('modal-auth');
+      showToast(sheetMode === 'register' ? 'Akun berhasil dibuat.' : 'Berhasil masuk.');
+    } catch (ex) {
+      pendingUsername = '';
+      err.textContent = ex.message;
+      shake('#auth-step-email');
+    } finally {
+      btn.disabled = false; btn.textContent = idle;
+    }
+  }
+
+  function bindAuthSheet() {
+    document.getElementById('btn-hdr-daftar').addEventListener('click', openAuthSheet);
+    document.getElementById('btn-akun-open-auth').addEventListener('click', openAuthSheet);
+    document.getElementById('btn-hdr-avatar').addEventListener('click', () => switchView('akun'));
+    document.getElementById('hdr-user').addEventListener('click', () => {
+      if (currentAuthUser) switchView('akun'); else openAuthSheet();
+    });
+    document.getElementById('btn-sheet-google').addEventListener('click', handleSheetGoogle);
+    document.getElementById('btn-sheet-email').addEventListener('click', () => showAuthStep('email'));
+    document.getElementById('btn-sheet-back').addEventListener('click', () => showAuthStep('choose'));
+    document.querySelectorAll('#sheet-auth-seg .segment').forEach((s) => {
+      s.addEventListener('click', () => { setSheetMode(s.dataset.sheetMode); showAuthStep('email'); });
+    });
+    document.getElementById('auth-step-email').addEventListener('submit', handleSheetSubmit);
+    document.getElementById('form-username').addEventListener('submit', handleUsernameSubmit);
+    document.getElementById('btn-username-skip').addEventListener('click', () => closeModal('modal-username'));
+    document.getElementById('btn-edit-username').addEventListener('click', () => openUsernameModal(true));
+  }
+
+  /* ---------------------------------------------------------
+     HUTANG & PIUTANG
+  --------------------------------------------------------- */
+  let debtFilter = 'all';
+  let debtFormType = 'owe';
+
+  function debtPaid(d) { return (d.payments || []).reduce((s, p) => s + (p.amount || 0), 0); }
+  function debtRemaining(d) { return Math.max(0, (d.amount || 0) - debtPaid(d)); }
+  function daysUntil(iso) {
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    const [y, m, dd] = iso.split('-').map(Number);
+    return Math.round((new Date(y, m - 1, dd) - t) / 86400000);
+  }
+  function debtStatus(d) {
+    if (debtRemaining(d) <= 0) return { key: 'done', label: 'Lunas' };
+    if (!d.dueDate) return { key: 'none', label: 'Tanpa jatuh tempo' };
+    const n = daysUntil(d.dueDate);
+    if (n < 0) return { key: 'late', label: `Terlambat ${-n} hari` };
+    if (n === 0) return { key: 'soon', label: 'Jatuh tempo hari ini' };
+    if (n <= Math.max(3, Number(d.remindBefore) || 0)) return { key: 'soon', label: `${n} hari lagi` };
+    return { key: 'ok', label: 'Jatuh tempo ' + formatDateShort(d.dueDate) };
+  }
+
+  function getReminders() {
+    return state.debts
+      .filter((d) => debtRemaining(d) > 0 && d.dueDate)
+      .map((d) => ({ d, days: daysUntil(d.dueDate) }))
+      .filter((r) => r.days <= (Number(r.d.remindBefore) || 0))
+      .sort((a, b) => a.days - b.days);
+  }
+  function reminderText(r) {
+    const who = r.d.person;
+    const verb = r.d.type === 'owe' ? `Bayar hutang ke ${who}` : `Tagih piutang dari ${who}`;
+    const when = r.days < 0 ? `terlambat ${-r.days} hari` : r.days === 0 ? 'jatuh tempo hari ini' : `${r.days} hari lagi`;
+    return { title: verb, when };
+  }
+  function reminderItemHTML(r) {
+    const t = reminderText(r);
+    const cls = r.days < 0 ? 'late' : r.days <= 1 ? 'soon' : '';
+    return `<li class="remind-item ${cls}" data-debt="${r.d.id}"><span class="remind-dot"></span>
+      <span class="remind-main"><b>${escapeHtml(t.title)}</b><span class="remind-sub">${t.when}</span></span>
+      <span class="remind-amt">${formatRupiah(debtRemaining(r.d))}</span></li>`;
+  }
+
+  function updateReminderUI() {
+    const list = getReminders();
+    const badge = document.getElementById('bell-badge');
+    badge.hidden = list.length === 0;
+    badge.textContent = list.length > 9 ? '9+' : String(list.length);
+    const card = document.getElementById('dash-remind-card');
+    card.hidden = list.length === 0;
+    document.getElementById('dash-remind-list').innerHTML = list.slice(0, 3).map(reminderItemHTML).join('');
+  }
+
+  function renderHutang() {
+    const active = state.debts.filter((d) => debtRemaining(d) > 0);
+    const owe = active.filter((d) => d.type === 'owe');
+    const lent = active.filter((d) => d.type === 'lent');
+    const sum = (arr) => arr.reduce((s, d) => s + debtRemaining(d), 0);
+    countUp(document.getElementById('ds-owe'), sum(owe));
+    countUp(document.getElementById('ds-lent'), sum(lent));
+    document.getElementById('ds-owe-sub').textContent = owe.length + ' belum lunas';
+    document.getElementById('ds-lent-sub').textContent = lent.length + ' belum lunas';
+
+    document.querySelectorAll('#debt-filter .segment').forEach((s) => s.classList.toggle('active', s.dataset.debtFilter === debtFilter));
+    let items = state.debts.filter((d) => debtFilter === 'all' || d.type === debtFilter);
+    items = items.slice().sort((a, b) => {
+      const da = debtRemaining(a) <= 0, db = debtRemaining(b) <= 0;
+      if (da !== db) return da ? 1 : -1;
+      const ad = a.dueDate || '9999-12-31', bd = b.dueDate || '9999-12-31';
+      if (ad !== bd) return ad.localeCompare(bd);
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+    const listEl = document.getElementById('debt-list');
+    document.getElementById('debt-empty').style.display = items.length ? 'none' : 'block';
+    listEl.innerHTML = items.map((d, i) => {
+      const paid = debtPaid(d), rem = debtRemaining(d), done = rem <= 0;
+      const pct = d.amount > 0 ? Math.min(100, Math.round((paid / d.amount) * 100)) : 0;
+      const st = debtStatus(d);
+      const isNew = state.lastAddedId === d.id;
+      const payLabel = d.type === 'owe' ? 'Catat Bayar' : 'Catat Terima';
+      return `<li class="debt-item ${d.type} ${done ? 'done' : ''} ${isNew ? 'just-added' : ''}" data-id="${d.id}" style="--i:${i}">
+        <div class="di-top">
+          <span class="di-avatar">${escapeHtml(initials(d.person))}</span>
+          <span class="di-main"><span class="di-name">${escapeHtml(d.person)}</span>
+            <span class="di-note">${d.type === 'owe' ? 'Hutang saya' : 'Piutang'}${d.note ? ' · ' + escapeHtml(d.note) : ''}</span></span>
+          <span class="di-amt"><b>${formatRupiah(done ? d.amount : rem)}</b><small>${done ? 'total' : 'sisa dari ' + formatRupiah(d.amount)}</small></span>
+        </div>
+        <div class="di-bar"><div class="di-bar-fill" style="--w:${pct}%"></div></div>
+        <div class="di-foot">
+          <span class="di-pill ${st.key}">${st.label}</span>
+          ${done ? '' : `<button type="button" class="di-pay" data-pay="${d.id}">${payLabel}</button>`}
+        </div></li>`;
+    }).join('');
+    state.lastAddedId = null;
+  }
+
+  function setDebtType(type) {
+    debtFormType = type;
+    document.querySelectorAll('#debt-type-seg .segment').forEach((s) => s.classList.toggle('active', s.dataset.debtType === type));
+    document.getElementById('debt-type-hint').textContent = type === 'owe' ? 'Uang yang kamu pinjam dari orang lain.' : 'Uang milikmu yang dipinjam orang lain.';
+    document.getElementById('debt-person-label').textContent = type === 'owe' ? 'Dipinjam dari' : 'Dipinjamkan ke';
+  }
+
+  function openDebtModal(id) {
+    const d = id ? state.debts.find((x) => x.id === id) : null;
+    document.getElementById('debt-modal-title').textContent = d ? 'Detail Catatan' : 'Catat Hutang';
+    document.getElementById('debt-id').value = d ? d.id : '';
+    setDebtType(d ? d.type : 'owe');
+    document.querySelectorAll('#debt-type-seg .segment').forEach((s) => { s.disabled = !!d; });
+    document.getElementById('debt-person').value = d ? d.person : '';
+    document.getElementById('debt-amount').value = d ? Number(d.amount).toLocaleString('id-ID') : '';
+    document.getElementById('debt-due').value = d && d.dueDate ? d.dueDate : '';
+    document.getElementById('debt-remind').value = String(d ? (d.remindBefore || 0) : 1);
+    document.getElementById('debt-note').value = d ? (d.note || '') : '';
+    document.getElementById('debt-delete-btn').hidden = !d;
+    const hist = document.getElementById('debt-history');
+    const pays = d ? (d.payments || []) : [];
+    hist.hidden = pays.length === 0;
+    document.getElementById('debt-pay-list').innerHTML = pays.slice().reverse().map((p) =>
+      `<li><span>${formatDateShort(p.date)}<small>${d.type === 'owe' ? 'Dibayar' : 'Diterima'}</small></span><b>${formatRupiah(p.amount)}</b>
+        <button type="button" class="dp-del" data-del-pay="${p.id}" aria-label="Hapus pembayaran">&times;</button></li>`).join('');
+    openModal('modal-debt');
+  }
+
+  async function handleDebtSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('debt-id').value;
+    const person = document.getElementById('debt-person').value.trim();
+    const amount = parseAmount(document.getElementById('debt-amount').value);
+    if (!person || amount <= 0) { shake('#form-debt'); showToast('Isi nama dan nominal.'); return; }
+    const existing = id ? state.debts.find((x) => x.id === id) : null;
+    const debt = Object.assign({}, existing || { payments: [] }, {
+      type: existing ? existing.type : debtFormType,
+      person, amount,
+      dueDate: document.getElementById('debt-due').value || '',
+      remindBefore: Number(document.getElementById('debt-remind').value) || 0,
+      note: document.getElementById('debt-note').value.trim()
+    });
+    const saved = await DB.saveDebt(debt);
+    await reloadAll();
+    closeModal('modal-debt');
+    if (!existing) { state.lastAddedId = saved.id; celebrate('debt'); }
+    if (state.currentView !== 'hutang') switchView('hutang'); else renderAll();
+    showToast(existing ? 'Catatan diperbarui.' : (saved.type === 'owe' ? 'Hutang dicatat.' : 'Piutang dicatat.'));
+    updateReminderUI();
+  }
+
+  function requestDeleteDebt() {
+    const id = document.getElementById('debt-id').value;
+    askConfirm('Hapus catatan ini beserta riwayat pembayarannya?', async () => {
+      const el = document.querySelector(`.debt-item[data-id="${id}"]`);
+      if (el) { el.classList.add('removing'); await new Promise((r) => setTimeout(r, 280)); }
+      await DB.deleteDebt(id);
+      await reloadAll();
+      closeModal('modal-debt');
+      renderAll();
+      updateReminderUI();
+      showToast('Catatan dihapus.');
+    });
+  }
+
+  function openPayModal(id) {
+    const d = state.debts.find((x) => x.id === id);
+    if (!d) return;
+    document.getElementById('dp-debt-id').value = id;
+    document.getElementById('dp-title').textContent = d.type === 'owe' ? 'Catat Pembayaran' : 'Catat Penerimaan';
+    document.getElementById('dp-info').textContent = `${d.person} · sisa ${formatRupiah(debtRemaining(d))}`;
+    document.getElementById('dp-amount').value = '';
+    document.getElementById('dp-date').value = todayISODate();
+    document.getElementById('dp-submit').textContent = d.type === 'owe' ? 'Simpan Pembayaran' : 'Simpan Penerimaan';
+    openModal('modal-debt-pay');
+  }
+
+  async function handlePaySubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('dp-debt-id').value;
+    const d = state.debts.find((x) => x.id === id);
+    if (!d) return;
+    const rem = debtRemaining(d);
+    let amount = parseAmount(document.getElementById('dp-amount').value);
+    if (amount <= 0) { shake('#form-debt-pay'); showToast('Isi nominal.'); return; }
+    if (amount > rem) amount = rem;
+    const next = Object.assign({}, d, { payments: (d.payments || []).concat([{ id: DB.genId(), amount, date: document.getElementById('dp-date').value || todayISODate() }]) });
+    await DB.saveDebt(next);
+    await reloadAll();
+    closeModal('modal-debt-pay');
+    renderAll();
+    updateReminderUI();
+    const lunas = debtRemaining(next) <= 0;
+    celebrate(lunas ? 'confetti' : 'check');
+    showToast(lunas ? 'Lunas! Catatan selesai.' : 'Pembayaran dicatat.');
+  }
+
+  async function deletePayment(debtId, payId) {
+    const d = state.debts.find((x) => x.id === debtId);
+    if (!d) return;
+    await DB.saveDebt(Object.assign({}, d, { payments: d.payments.filter((p) => p.id !== payId) }));
+    await reloadAll();
+    renderAll();
+    updateReminderUI();
+    openDebtModal(debtId);
+  }
+
+  function bindHutang() {
+    document.getElementById('btn-debt-add').addEventListener('click', () => openDebtModal(null));
+    document.querySelectorAll('#debt-filter .segment').forEach((s) => s.addEventListener('click', () => { debtFilter = s.dataset.debtFilter; renderHutang(); }));
+    document.querySelectorAll('#debt-type-seg .segment').forEach((s) => s.addEventListener('click', () => setDebtType(s.dataset.debtType)));
+    document.getElementById('debt-list').addEventListener('click', (e) => {
+      const pay = e.target.closest('[data-pay]');
+      if (pay) { openPayModal(pay.dataset.pay); return; }
+      const li = e.target.closest('.debt-item');
+      if (li) openDebtModal(li.dataset.id);
+    });
+    document.getElementById('form-debt').addEventListener('submit', handleDebtSubmit);
+    document.getElementById('debt-delete-btn').addEventListener('click', requestDeleteDebt);
+    document.getElementById('form-debt-pay').addEventListener('submit', handlePaySubmit);
+    document.getElementById('dp-full').addEventListener('click', () => {
+      const d = state.debts.find((x) => x.id === document.getElementById('dp-debt-id').value);
+      if (d) document.getElementById('dp-amount').value = debtRemaining(d).toLocaleString('id-ID');
+    });
+    document.getElementById('debt-pay-list').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-del-pay]');
+      if (b) deletePayment(document.getElementById('debt-id').value, b.dataset.delPay);
+    });
+    formatAmountInputLive(document.getElementById('debt-amount'));
+    formatAmountInputLive(document.getElementById('dp-amount'));
+
+    // pengingat: lonceng, kartu dashboard, sheet
+    const openSheet = () => {
+      const list = getReminders();
+      document.getElementById('reminder-sheet-list').innerHTML = list.map(reminderItemHTML).join('');
+      document.getElementById('reminder-sheet-empty').style.display = list.length ? 'none' : 'block';
+      openModal('modal-reminders');
+    };
+    document.getElementById('btn-bell').addEventListener('click', openSheet);
+    document.getElementById('btn-remind-all').addEventListener('click', openSheet);
+    document.getElementById('btn-open-hutang').addEventListener('click', () => { closeModal('modal-reminders'); switchView('hutang'); });
+    ['dash-remind-list', 'reminder-sheet-list'].forEach((id) => {
+      document.getElementById(id).addEventListener('click', (e) => {
+        const li = e.target.closest('[data-debt]');
+        if (!li) return;
+        closeModal('modal-reminders');
+        switchView('hutang');
+        setTimeout(() => openDebtModal(li.dataset.debt), 120);
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------
+     NOTIFIKASI BROWSER (hanya saat aplikasi terbuka/berjalan)
+  --------------------------------------------------------- */
+  const NOTIFIED_KEY = 'bukukas-notified';
+  function notifSupported() { return 'Notification' in window; }
+  function notifOn() { return loadSettings().notif === true && notifSupported() && Notification.permission === 'granted'; }
+
+  function updateNotifSwitch() {
+    const sw = document.getElementById('settings-notif-switch');
+    sw.setAttribute('aria-checked', notifOn() ? 'true' : 'false');
+    const desc = document.getElementById('notif-desc');
+    if (!notifSupported()) desc.textContent = 'Browser ini tidak mendukung notifikasi.';
+    else if (Notification.permission === 'denied') desc.textContent = 'Izin notifikasi ditolak. Aktifkan lewat pengaturan browser.';
+    else desc.textContent = 'Ingatkan jatuh tempo hutang & piutang saat aplikasi dibuka';
+  }
+
+  async function toggleNotif() {
+    if (!notifSupported()) { showToast('Browser ini tidak mendukung notifikasi.'); return; }
+    const s = loadSettings();
+    if (notifOn()) { s.notif = false; saveSettings(s); updateNotifSwitch(); showToast('Notifikasi dimatikan.'); return; }
+    let perm = Notification.permission;
+    if (perm === 'default') perm = await Notification.requestPermission();
+    if (perm !== 'granted') { updateNotifSwitch(); showToast('Izin notifikasi tidak diberikan.'); return; }
+    s.notif = true; saveSettings(s); updateNotifSwitch();
+    showToast('Notifikasi pengingat aktif.');
+    checkReminderNotifications(true);
+  }
+
+  async function showNotif(title, body, tag) {
+    try {
+      const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+      if (reg && reg.showNotification) { await reg.showNotification(title, { body, tag, icon: 'icons/icon-192.png', badge: 'icons/favicon-32.png' }); return; }
+    } catch (e) { /* fallback */ }
+    try { new Notification(title, { body, tag, icon: 'icons/icon-192.png' }); } catch (e) { /* abaikan */ }
+  }
+
+  function checkReminderNotifications(force) {
+    updateReminderUI();
+    if (!notifOn()) return;
+    let log = {};
+    try { log = JSON.parse(localStorage.getItem(NOTIFIED_KEY)) || {}; } catch (e) { log = {}; }
+    const today = todayISODate();
+    getReminders().forEach((r) => {
+      const key = r.d.id;
+      if (!force && log[key] === today) return;
+      const t = reminderText(r);
+      showNotif('Buku Kas — ' + t.title, `${formatRupiah(debtRemaining(r.d))} · ${t.when}`, 'debt-' + key);
+      log[key] = today;
+    });
+    try { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(log)); } catch (e) { /* abaikan */ }
   }
 
   /* ---------------------------------------------------------
@@ -2299,6 +2884,11 @@
     bindKategori();
     bindAnggaran();
     bindAkun(); // pasang listener auth + gerbang login
+    bindAuthSheet();
+    bindHutang();
+    bindFx();
+    document.getElementById('settings-notif-switch').addEventListener('click', toggleNotif);
+    updateNotifSwitch();
     bindPengaturan();
     bindModalDismiss();
     bindConfirmModal();
@@ -2312,6 +2902,10 @@
     if (security.enabled) {
       startUnlockFlow();
     }
+
+    setTimeout(() => checkReminderNotifications(false), 1800);
+    setInterval(() => checkReminderNotifications(false), 30 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkReminderNotifications(false); });
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').catch(() => {});
