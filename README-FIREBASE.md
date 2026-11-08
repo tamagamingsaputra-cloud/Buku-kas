@@ -84,3 +84,62 @@ Di form "Tambah Transaksi" ada tombol **Foto Struk**. Teks struk dibaca di HP de
 Tesseract.js (gratis). Pertama kali dipakai perlu internet untuk mengunduh pembaca teks,
 berikutnya tersimpan di browser. Foto tidak diunggah dan tidak disimpan. Hasilnya selalu
 perlu dicek sebelum disimpan.
+
+## Lupa PIN: tautan pemulihan ke email (opsional)
+
+Tombol **Lupa PIN?** di layar kunci menawarkan tiga cara:
+1. **Pertanyaan keamanan** (selalu tersedia, tanpa internet).
+2. **Verifikasi dengan akun** (Google atau password akun yang sedang masuk di perangkat ini).
+3. **Kirim tautan ke email** akun yang sedang masuk. Ketuk tautannya di email, aplikasi terbuka
+   dan langsung meminta PIN baru.
+
+Cara 3 butuh pengaturan sekali di Firebase Console:
+- **Authentication → Sign-in method → Email/Password → aktifkan "Email link (passwordless sign-in)"** → Save.
+- Domain websitemu harus ada di **Authentication → Settings → Authorized domains**.
+- Email dikirim oleh Firebase (gratis, ada batas harian). Cek folder Spam jika belum masuk.
+
+Jika ketiganya tidak bisa dipakai, ada tombol **Reset aplikasi** (menghapus PIN dan semua data di
+perangkat ini; data yang sudah disinkron ke cloud bisa ditarik lagi setelah masuk akun).
+
+
+---
+
+## Keamanan akun: email asli + password kuat
+
+Pemeriksaan di dalam aplikasi (browser) **bisa dilewati** oleh orang yang mengutak-atik kode,
+jadi penjaga yang sebenarnya harus ada di server Firebase. Lakukan semua langkah ini:
+
+### 1. Aturan Firestore: wajib email terverifikasi
+Firebase Console -> Firestore Database -> Rules, ganti dengan ini lalu **Publish**:
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == uid
+                         && request.auth.token.email_verified == true;
+    }
+  }
+}
+```
+Dengan aturan ini, akun yang emailnya belum diverifikasi tidak bisa menyimpan atau membaca data cloud,
+walaupun orang itu memanggil Firebase langsung dari luar aplikasi.
+
+### 2. Kebijakan password di server
+Authentication -> Settings -> **Password policy** -> aktifkan, lalu atur: minimal 8 karakter,
+wajib huruf besar, huruf kecil, dan angka -> Save. Aturan ini dipaksakan oleh Firebase,
+bukan hanya oleh aplikasi.
+
+### 3. Perlindungan lainnya (Authentication -> Settings)
+- **User actions**: biarkan *Email enumeration protection* aktif (mencegah orang menebak email yang sudah terdaftar).
+- **Authorized domains**: hanya isi domain websitemu sendiri, hapus yang tidak dipakai.
+
+### Cara kerja di aplikasi
+- Daftar dengan email: aplikasi mengirim **tautan verifikasi** ke emailnya. Akun baru **belum bisa masuk**
+  sampai tautan itu diketuk. Email palsu atau milik orang lain tidak akan pernah menerima tautannya.
+- Masuk sebelum verifikasi: aplikasi menolak dan mengirim ulang tautannya.
+- Login Google: email sudah diverifikasi Google, jadi langsung sah.
+- Password minimal 8 karakter, wajib huruf dan angka, ditolak jika terlalu umum atau memuat email/username.
+- Email sementara (mailinator dll.) dan salah ketik domain (gmial.com) ditolak.
+- Akun email lama yang dibuat sebelum fitur ini harus memverifikasi emailnya sekali saat masuk berikutnya.

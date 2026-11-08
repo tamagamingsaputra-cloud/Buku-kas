@@ -5,7 +5,7 @@
    Data tetap disimpan di IndexedDB, bukan di service worker ini.
    ============================================================ */
 
-const CACHE_NAME = 'bukukas-cache-v7';
+const CACHE_NAME = 'bukukas-cache-v9';
 const APP_SHELL = [
   './index.html',
   './style.css',

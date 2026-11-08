@@ -26,6 +26,13 @@
       'auth/wrong-password': 'Password salah.',
       'auth/invalid-credential': 'Email atau password salah.',
       'auth/popup-closed-by-user': 'Login Google dibatalkan.',
+      'auth/password-does-not-meet-requirements': 'Password belum memenuhi syarat keamanan. Pakai minimal 8 karakter dengan huruf dan angka.',
+      'auth/too-many-requests': 'Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.',
+      'auth/popup-blocked': 'Popup diblokir browser. Izinkan popup lalu coba lagi.',
+      'auth/requires-recent-login': 'Verifikasi ulang diperlukan, coba lagi.',
+      'auth/operation-not-allowed': 'Metode ini belum diaktifkan di Firebase (Email link). Lihat README-FIREBASE.md.',
+      'auth/unauthorized-continue-uri': 'Domain website belum didaftarkan di Firebase (Authorized domains).',
+      'auth/invalid-action-code': 'Tautan sudah kedaluwarsa atau sudah dipakai. Kirim ulang tautan.',
       'auth/network-request-failed': 'Gagal terhubung — periksa koneksi internet.',
       'auth/configuration-not-found': 'Firebase belum dikonfigurasi dengan benar. Lihat README-FIREBASE.md.'
     };
@@ -68,45 +75,120 @@
     });
   }
 
+  /* ---------- Validasi & verifikasi (sisi aplikasi) ----------
+     PENTING: pemeriksaan di browser bisa dilewati siapa pun yang mengutak-atik
+     kode. Penjaga sebenarnya adalah verifikasi email (Firebase) dan Firestore
+     Rules yang mewajibkan email_verified. Lihat README-FIREBASE.md. */
+  const DISPOSABLE = ['mailinator.com', 'guerrillamail.com', '10minutemail.com', 'tempmail.com', 'temp-mail.org', 'yopmail.com', 'trashmail.com', 'sharklasers.com', 'getnada.com', 'dispostable.com', 'maildrop.cc', 'throwawaymail.com', 'fakeinbox.com', 'mintemail.com', 'emailondeck.com', 'mailnesia.com', 'tempail.com'];
+  const TYPOS = { 'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gmail.co': 'gmail.com', 'gmail.con': 'gmail.com', 'gnail.com': 'gmail.com', 'gmaill.com': 'gmail.com', 'yahooo.com': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahoo.con': 'yahoo.com', 'hotmial.com': 'hotmail.com', 'hotmail.con': 'hotmail.com', 'outlok.com': 'outlook.com' };
+  const COMMON_PW = ['12345678', '123456789', '1234567890', 'qwertyui', 'qwerty123', '11111111', 'abc12345', 'abcd1234', 'iloveyou1', 'admin123', 'welcome1', 'letmein1', 'bukukas1', 'bukukas123'];
+
+  function validateEmail(email) {
+    const e = String(email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e) || e.length > 254) throw new Error('Format email tidak valid.');
+    const [local, domain] = e.split('@');
+    if (TYPOS[domain]) throw new Error('Mungkin salah ketik. Maksudmu ' + local + '@' + TYPOS[domain] + '?');
+    if (DISPOSABLE.includes(domain)) throw new Error('Email sementara tidak diperbolehkan. Pakai email aslimu.');
+    return e;
+  }
+
+  function validatePassword(pw, email, username) {
+    const p = String(pw || '');
+    if (p.length < 8) throw new Error('Password minimal 8 karakter.');
+    if (p.length > 128) throw new Error('Password terlalu panjang (maksimal 128 karakter).');
+    if (!/[A-Za-z]/.test(p) || !/\d/.test(p)) throw new Error('Password harus berisi huruf dan angka.');
+    const low = p.toLowerCase();
+    if (COMMON_PW.includes(low) || low.includes('password') || /^(.)\1+$/.test(p)) throw new Error('Password terlalu mudah ditebak. Pakai kombinasi yang unik.');
+    const local = String(email || '').split('@')[0].toLowerCase();
+    if (local.length >= 4 && low.includes(local)) throw new Error('Password tidak boleh memuat bagian dari emailmu.');
+    const uname = String(username || '').trim().toLowerCase();
+    if (uname.length >= 3 && low.includes(uname)) throw new Error('Password tidak boleh memuat username-mu.');
+    return true;
+  }
+
+  /* Akun email/password baru dianggap sah hanya setelah emailnya diverifikasi. */
+  function isVerified(u) {
+    if (!u) return false;
+    const ids = (u.providerData || []).map((p) => p.providerId);
+    if (ids.includes('password') && !ids.includes('google.com')) return !!u.emailVerified;
+    return true;
+  }
+
+  async function sendVerification(user) {
+    const opts = { url: location.origin + location.pathname };
+    try { await user.sendEmailVerification(opts); }
+    catch (e) {
+      if (e && e.code === 'auth/unauthorized-continue-uri') await user.sendEmailVerification();
+      else throw e;
+    }
+  }
+
   const CloudSync = {
     isReady: ready,
 
+    validateEmail: validateEmail,
+    validatePassword: validatePassword,
+
     currentUser: function () {
       if (!ready()) return null;
-      return firebase.auth().currentUser;
+      const u = firebase.auth().currentUser;
+      return isVerified(u) ? u : null;
     },
 
+    /* Pengguna yang belum verifikasi email dianggap belum masuk; callback hanya
+       dipanggil saat status masuk/keluar benar-benar berubah. */
     onAuthChange: function (callback) {
       if (!ready()) return;
-      firebase.auth().onAuthStateChanged(callback);
+      let last;
+      firebase.auth().onAuthStateChanged((u) => {
+        const eff = isVerified(u) ? u : null;
+        const key = eff ? eff.uid : null;
+        if (key === last) return;
+        last = key;
+        callback(eff);
+      });
     },
 
     register: async function (username, email, password) {
       if (!ready()) throw new Error('Firebase belum dikonfigurasi. Lihat README-FIREBASE.md.');
+      const mail = validateEmail(email);
+      validatePassword(password, mail, username);
+      let cred;
       try {
-        const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        if (username) {
-          await cred.user.updateProfile({ displayName: username });
-        }
-        await firebase.firestore().collection('users').doc(cred.user.uid).set({
-          username: username || '',
-          email: email,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-        return cred.user;
+        cred = await firebase.auth().createUserWithEmailAndPassword(mail, password);
       } catch (err) {
         throw new Error(friendlyAuthError(err));
       }
+      let sendFailed = false;
+      try {
+        if (username) await cred.user.updateProfile({ displayName: username });
+        await sendVerification(cred.user);
+      } catch (e) {
+        sendFailed = true;
+      }
+      await firebase.auth().signOut();   // belum boleh masuk sebelum email diverifikasi
+      if (sendFailed) throw new Error('Akun dibuat, tetapi tautan verifikasi gagal dikirim. Coba menu Masuk untuk mengirim ulang.');
+      return { verifyEmail: mail };
     },
 
     login: async function (email, password) {
       if (!ready()) throw new Error('Firebase belum dikonfigurasi. Lihat README-FIREBASE.md.');
+      const mail = String(email || '').trim().toLowerCase();
+      let cred;
       try {
-        const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
-        return cred.user;
+        cred = await firebase.auth().signInWithEmailAndPassword(mail, password);
       } catch (err) {
         throw new Error(friendlyAuthError(err));
       }
+      if (!isVerified(cred.user)) {
+        let sent = true;
+        try { await sendVerification(cred.user); } catch (e) { sent = false; }
+        await firebase.auth().signOut();
+        throw new Error(sent
+          ? 'Email belum diverifikasi. Kami kirim ulang tautan ke ' + mail + '. Buka emailnya (cek juga Spam), ketuk tautannya, lalu masuk lagi.'
+          : 'Email belum diverifikasi. Cek emailmu (termasuk Spam) dan ketuk tautan verifikasinya, lalu masuk lagi.');
+      }
+      return cred.user;
     },
 
     loginWithGoogle: async function () {
@@ -159,6 +241,72 @@
       const doc = await firebase.firestore().collection('users').doc(user.uid).get();
       const data = doc.exists ? doc.data() : null;
       return data && data.usernameSet && data.username ? data.username : null;
+    },
+
+    /** Cara verifikasi ulang yang tersedia untuk akun yang sedang masuk: 'google' | 'password' | 'none' */
+    authMethod: function () {
+      if (!ready()) return 'none';
+      const u = firebase.auth().currentUser;
+      if (!u) return 'none';
+      const ids = (u.providerData || []).map((p) => p.providerId);
+      if (ids.includes('google.com')) return 'google';
+      if (ids.includes('password')) return 'password';
+      return 'none';
+    },
+
+    /** Verifikasi ulang pemilik akun (untuk pemulihan PIN). password hanya untuk akun email. */
+    reauth: async function (password) {
+      if (!ready()) throw new Error('Fitur akun belum aktif di versi ini.');
+      const u = firebase.auth().currentUser;
+      if (!u) throw new Error('Belum ada akun yang masuk di perangkat ini.');
+      const ids = (u.providerData || []).map((p) => p.providerId);
+      try {
+        if (ids.includes('password') && password) {
+          await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, password));
+        } else if (ids.includes('google.com')) {
+          await u.reauthenticateWithPopup(new firebase.auth.GoogleAuthProvider());
+        } else {
+          throw new Error('Masukkan password akunmu.');
+        }
+        return true;
+      } catch (err) {
+        throw new Error(err && err.code ? friendlyAuthError(err) : (err && err.message) || 'Verifikasi gagal.');
+      }
+    },
+
+    /** Kirim tautan verifikasi ke email akun yang sedang masuk. Mengembalikan email-nya. */
+    sendRecoveryLink: async function () {
+      if (!ready()) throw new Error('Fitur akun belum aktif di versi ini.');
+      const u = firebase.auth().currentUser;
+      if (!u || !u.email) throw new Error('Belum ada akun yang masuk di perangkat ini.');
+      try {
+        await firebase.auth().sendSignInLinkToEmail(u.email, {
+          url: location.origin + location.pathname + '?pinreset=1',
+          handleCodeInApp: true
+        });
+        try { localStorage.setItem('bukukas-emaillink', u.email); } catch (e) { /* abaikan */ }
+        return u.email;
+      } catch (err) {
+        throw new Error(friendlyAuthError(err));
+      }
+    },
+
+    /** Dipanggil saat aplikasi dibuka: jika URL berisi tautan email yang valid, selesaikan verifikasi. */
+    completeEmailLink: async function () {
+      if (!ready()) return false;
+      const auth = firebase.auth();
+      if (!auth.isSignInWithEmailLink(location.href)) return false;
+      let email = null;
+      try { email = localStorage.getItem('bukukas-emaillink'); } catch (e) { /* abaikan */ }
+      if (!email) email = window.prompt('Masukkan email yang menerima tautan verifikasi:');
+      if (!email) return false;
+      try {
+        await auth.signInWithEmailLink(email, location.href);
+        try { localStorage.removeItem('bukukas-emaillink'); } catch (e) { /* abaikan */ }
+        return true;
+      } catch (err) {
+        throw new Error(friendlyAuthError(err));
+      }
     },
 
     logout: async function () {

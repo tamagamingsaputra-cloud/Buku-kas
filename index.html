@@ -220,11 +220,12 @@
             <span class="lg-label">Password</span>
             <span class="lg-input-wrap">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-              <input type="password" id="auth-password-login" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="current-password" />
+              <input type="password" id="auth-password-login" placeholder="Password" required autocomplete="current-password" />
               <button type="button" class="lg-eye" id="lg-toggle-pass" aria-label="Tampilkan password">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </span>
+            <span class="lg-hint" id="auth-pw-hint-login" hidden>Minimal 8 karakter, kombinasi huruf dan angka.</span>
           </label>
           <p class="auth-error" id="auth-error-login" role="alert"></p>
           <button type="submit" class="lg-btn" id="auth-submit-btn-login"><span class="lg-btn-label">Masuk</span></button>
@@ -1078,7 +1079,8 @@
         </label>
         <label class="field">
           <span class="field-label">Password</span>
-          <input type="password" id="sheet-password" placeholder="Minimal 6 karakter" required minlength="6" autocomplete="current-password" />
+          <input type="password" id="sheet-password" placeholder="Password" required autocomplete="current-password" />
+          <span class="field-hint" id="sheet-pw-hint" hidden>Minimal 8 karakter, kombinasi huruf dan angka.</span>
         </label>
         <p class="auth-error" id="sheet-auth-error"></p>
         <div class="modal-actions">
@@ -1290,6 +1292,40 @@
         <button type="submit" class="btn-primary" id="sq-submit-btn">Simpan</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: LUPA PIN (PEMULIHAN) ===================== -->
+<div class="modal-overlay over-lock" id="modal-pin-recovery">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Lupa PIN</h3>
+      <button class="modal-close" data-close-modal="modal-pin-recovery" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="field-hint">Buktikan bahwa ini kamu dengan salah satu cara di bawah, lalu buat PIN baru.</p>
+      <div class="menu-list rec-list">
+        <button type="button" class="menu-item" id="rec-question">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg></span>
+          <span class="menu-item-text"><span class="menu-item-title">Jawab pertanyaan keamanan</span><span class="menu-item-desc">Pertanyaan yang kamu buat saat mengaktifkan PIN</span></span>
+        </button>
+        <button type="button" class="menu-item" id="rec-account">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></span>
+          <span class="menu-item-text"><span class="menu-item-title">Verifikasi dengan akun</span><span class="menu-item-desc" id="rec-account-desc">Masuk ulang dengan Google atau password akunmu</span></span>
+        </button>
+        <form id="rec-pass-form" class="rec-pass" hidden>
+          <input type="password" id="rec-pass-input" placeholder="Password akunmu" autocomplete="current-password" />
+          <button type="submit" class="btn-primary" id="rec-pass-btn">Verifikasi</button>
+        </form>
+        <button type="button" class="menu-item" id="rec-email">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+          <span class="menu-item-text"><span class="menu-item-title">Kirim tautan ke email</span><span class="menu-item-desc" id="rec-email-desc">Perlu akun yang sudah masuk</span></span>
+        </button>
+      </div>
+      <p class="rec-msg" id="rec-msg" role="status"></p>
+      <button type="button" class="rec-wipe" id="rec-wipe">Tidak ingat semuanya? Reset aplikasi</button>
+    </div>
   </div>
 </div>
 

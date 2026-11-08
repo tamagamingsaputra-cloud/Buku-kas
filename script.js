@@ -409,15 +409,138 @@
     }
   }
 
+  /* ---- Lupa PIN: tiga cara pemulihan + reset sebagai pilihan terakhir ---- */
+  function maskEmail(email) {
+    const [u, d] = String(email || '').split('@');
+    if (!d) return '';
+    return (u.length <= 2 ? u.charAt(0) : u.slice(0, 2)) + '***@' + d;
+  }
+  function recMsg(text, kind) {
+    const el = document.getElementById('rec-msg');
+    el.textContent = text || '';
+    el.className = 'rec-msg' + (kind ? ' ' + kind : '');
+  }
+  function recoveryUser() {
+    return (window.CloudSync && CloudSync.isReady()) ? CloudSync.currentUser() : null;
+  }
+  function openRecoveryModal() {
+    recMsg('');
+    document.getElementById('rec-pass-form').hidden = true;
+    const user = recoveryUser();
+    const method = user ? CloudSync.authMethod() : 'none';
+    const accDesc = document.getElementById('rec-account-desc');
+    const emailDesc = document.getElementById('rec-email-desc');
+    const accBtn = document.getElementById('rec-account');
+    const mailBtn = document.getElementById('rec-email');
+    if (method === 'google') accDesc.textContent = 'Masuk ulang dengan akun Google-mu';
+    else if (method === 'password') accDesc.textContent = 'Masukkan password akunmu';
+    else accDesc.textContent = 'Hanya untuk pengguna yang sudah masuk akun';
+    emailDesc.textContent = user && user.email ? 'Kirim ke ' + maskEmail(user.email) : 'Hanya untuk pengguna yang sudah masuk akun';
+    accBtn.classList.toggle('is-off', method === 'none');
+    mailBtn.classList.toggle('is-off', !(user && user.email));
+    openModal('modal-pin-recovery');
+  }
+  function recoveryVerified() {
+    closeModal('modal-pin-recovery');
+    sfx('click');
+    openLock({ purpose: 'forgot', step: 'new1' });
+    showToast('Terverifikasi. Buat PIN baru.');
+  }
+  async function recoverWithAccount() {
+    const user = recoveryUser();
+    const method = user ? CloudSync.authMethod() : 'none';
+    if (method === 'none') {
+      recMsg(window.CloudSync && CloudSync.isReady()
+        ? 'Belum ada akun yang masuk di perangkat ini. Tunggu sebentar jika baru membuka aplikasi, atau pakai cara lain.'
+        : 'Fitur akun belum aktif di versi ini. Pakai pertanyaan keamanan.', 'err');
+      shake('#rec-account');
+      return;
+    }
+    if (method === 'password') {
+      document.getElementById('rec-pass-form').hidden = false;
+      document.getElementById('rec-pass-input').focus();
+      recMsg('');
+      return;
+    }
+    const btn = document.getElementById('rec-account');
+    btn.classList.add('busy'); recMsg('Membuka verifikasi Google…');
+    try { await CloudSync.reauth(); recoveryVerified(); }
+    catch (e) { recMsg(e.message, 'err'); shake(btn); }
+    finally { btn.classList.remove('busy'); }
+  }
+  async function recoverWithPassword(e) {
+    e.preventDefault();
+    const input = document.getElementById('rec-pass-input');
+    const btn = document.getElementById('rec-pass-btn');
+    if (!input.value) { shake('#rec-pass-form'); return; }
+    btn.disabled = true; recMsg('Memeriksa…');
+    try { await CloudSync.reauth(input.value); input.value = ''; recoveryVerified(); }
+    catch (err) { recMsg(err.message, 'err'); shake('#rec-pass-form'); }
+    finally { btn.disabled = false; }
+  }
+  let recLinkCooldown = 0;
+  async function recoverWithEmail() {
+    const user = recoveryUser();
+    if (!user || !user.email) {
+      recMsg('Belum ada akun yang masuk di perangkat ini, jadi tautan tidak bisa dikirim. Pakai cara lain.', 'err');
+      shake('#rec-email');
+      return;
+    }
+    const left = Math.ceil((recLinkCooldown - Date.now()) / 1000);
+    if (left > 0) { recMsg('Tunggu ' + left + ' detik sebelum mengirim ulang.', 'err'); return; }
+    const btn = document.getElementById('rec-email');
+    btn.classList.add('busy'); recMsg('Mengirim tautan…');
+    try {
+      const email = await CloudSync.sendRecoveryLink();
+      recLinkCooldown = Date.now() + 60000;
+      recMsg('Tautan dikirim ke ' + maskEmail(email) + '. Buka emailnya dan ketuk tautan itu. Kamu akan langsung diminta membuat PIN baru. Cek folder Spam jika belum masuk.', 'ok');
+    } catch (e) { recMsg(e.message, 'err'); shake(btn); }
+    finally { btn.classList.remove('busy'); }
+  }
+  function recoverWipe() {
+    askConfirm('PIN dan SEMUA data di perangkat ini akan dihapus. Jika datamu sudah disinkronkan ke cloud, kamu bisa memulihkannya setelah masuk akun. Lanjutkan?', async () => {
+      await DB.resetAll();
+      saveSecurity({ enabled: false });
+      closeModal('modal-pin-recovery');
+      closeLockScreen();
+      updateSettingsLockUI();
+      await reloadAll();
+      renderAll();
+      showToast('Aplikasi direset. Kunci PIN dinonaktifkan.');
+    });
+  }
+
+  /* Dipanggil saat aplikasi dibuka dari tautan email pemulihan */
+  async function handleEmailLinkReturn() {
+    if (!(window.CloudSync && CloudSync.isReady())) return;
+    try {
+      const ok = await CloudSync.completeEmailLink();
+      if (!ok) return;
+      history.replaceState(null, '', location.pathname);
+      if (getSecurity().enabled) {
+        openLock({ purpose: 'forgot', step: 'new1' });
+        showToast('Email terverifikasi. Buat PIN baru.');
+      } else {
+        showToast('Email terverifikasi.');
+      }
+    } catch (e) { showToast(e.message); }
+  }
+
   function bindLockScreen() {
     document.getElementById('keypad').addEventListener('click', (e) => {
       const btn = e.target.closest('.key');
       if (!btn || !btn.dataset.key) return;
       handleLockKey(btn.dataset.key);
     });
-    document.getElementById('lock-forgot-btn').addEventListener('click', () => {
+    document.getElementById('lock-forgot-btn').addEventListener('click', openRecoveryModal);
+    document.getElementById('rec-question').addEventListener('click', () => {
+      closeModal('modal-pin-recovery');
       openSecurityQuestionModal('verify', null);
     });
+    document.getElementById('rec-account').addEventListener('click', recoverWithAccount);
+    document.getElementById('rec-pass-form').addEventListener('submit', recoverWithPassword);
+    document.getElementById('rec-email').addEventListener('click', recoverWithEmail);
+    document.getElementById('rec-wipe').addEventListener('click', recoverWipe);
     document.getElementById('lock-cancel-btn').addEventListener('click', cancelLockFlow);
     document.getElementById('form-security-question').addEventListener('submit', handleSecurityQuestionSubmit);
   }
@@ -663,7 +786,8 @@
       ? 'Daftar gratis, lalu datamu bisa dipulihkan di HP mana pun.'
       : 'Data keuanganmu bisa dipulihkan di HP mana pun.';
     document.getElementById('auth-password-login').autocomplete = isRegister ? 'new-password' : 'current-password';
-    document.getElementById('auth-error-login').textContent = '';
+    document.getElementById('auth-pw-hint-login').hidden = !isRegister;
+    setAuthMsg(document.getElementById('auth-error-login'), '');
   }
 
   function updateAkunUI(user) {
@@ -685,10 +809,15 @@
     }
   }
 
+  function setAuthMsg(el, text, kind) {
+    el.textContent = text || '';
+    el.classList.toggle('ok', kind === 'ok');
+  }
+
   async function handleAuthSubmitLogin(e) {
     e.preventDefault();
     const errorEl = document.getElementById('auth-error-login');
-    errorEl.textContent = '';
+    setAuthMsg(errorEl, '');
     const email = document.getElementById('auth-email-login').value.trim();
     const password = document.getElementById('auth-password-login').value;
     const username = document.getElementById('auth-username-login').value.trim();
@@ -699,17 +828,21 @@
     label.textContent = 'Memproses...';
     try {
       if (authModeLogin === 'register') {
-        await CloudSync.register(username, email, password);
+        const r = await CloudSync.register(username, email, password);
+        document.getElementById('auth-password-login').value = '';
+        document.getElementById('auth-username-login').value = '';
+        setAuthModeLogin('login');
+        setAuthMsg(errorEl, 'Akun dibuat. Kami kirim tautan verifikasi ke ' + r.verifyEmail + '. Buka emailnya (cek juga Spam), ketuk tautannya, lalu masuk di sini.', 'ok');
       } else {
         await CloudSync.login(email, password);
+        document.getElementById('form-auth-login').reset();
+        // Berhasil: onAuthChange -> handleAuthState memutar transisi layar hitam
       }
-      document.getElementById('form-auth-login').reset();
-      // Berhasil: onAuthChange -> handleAuthState memutar transisi layar hitam
     } catch (err) {
-      errorEl.textContent = err.message;
+      setAuthMsg(errorEl, err.message);
     } finally {
       submitBtn.disabled = false;
-      label.textContent = idleText;
+      label.textContent = authModeLogin === 'register' ? 'Daftar' : 'Masuk';
     }
   }
 
@@ -1740,6 +1873,15 @@
       seg.classList.toggle('active', seg.dataset.txType === type);
     });
     populateTxCategorySelect(type);
+    // Foto struk hanya untuk pengeluaran; pemasukan tidak punya struk
+    const scanBtn = document.getElementById('btn-scan-receipt');
+    if (scanBtn) {
+      const show = type === 'expense';
+      const wasHidden = scanBtn.hidden;
+      scanBtn.hidden = !show;
+      if (show && wasHidden) { scanBtn.classList.remove('scan-in'); void scanBtn.offsetWidth; scanBtn.classList.add('scan-in'); }
+      if (!show) resetScanUI();
+    }
   }
 
   function openTxModal(id) {
@@ -2449,6 +2591,14 @@
       return;
     }
     if (loadProfiles()[user.uid]) return;
+    // akun email: username sudah diisi saat daftar (tersimpan di profil akun)
+    const viaPassword = (user.providerData || []).some((p) => p.providerId === 'password');
+    if (viaPassword && user.displayName) {
+      saveProfileName(user.uid, user.displayName);
+      CloudSync.setUsername(user.displayName).catch(() => {});
+      updateHeader(); updateAkunUI(user);
+      return;
+    }
     // perangkat baru: cek apakah username sudah pernah disimpan di cloud
     try {
       const cloudName = await CloudSync.getUsername();
@@ -2494,7 +2644,8 @@
     document.getElementById('sheet-username-wrap').hidden = mode !== 'register';
     document.getElementById('sheet-submit').textContent = mode === 'register' ? 'Daftar' : 'Masuk';
     document.getElementById('sheet-password').autocomplete = mode === 'register' ? 'new-password' : 'current-password';
-    document.getElementById('sheet-auth-error').textContent = '';
+    document.getElementById('sheet-pw-hint').hidden = mode !== 'register';
+    setAuthMsg(document.getElementById('sheet-auth-error'), '');
   }
   function showAuthStep(step) {
     document.getElementById('auth-step-choose').hidden = step !== 'choose';
@@ -2521,7 +2672,7 @@
   async function handleSheetSubmit(e) {
     e.preventDefault();
     const err = document.getElementById('sheet-auth-error');
-    err.textContent = '';
+    setAuthMsg(err, '');
     const email = document.getElementById('sheet-email').value.trim();
     const password = document.getElementById('sheet-password').value;
     const username = document.getElementById('sheet-username').value.trim();
@@ -2530,20 +2681,23 @@
     btn.disabled = true; btn.textContent = 'Memproses...';
     try {
       if (sheetMode === 'register') {
-        pendingUsername = username;
-        await CloudSync.register(username, email, password);
+        const r = await CloudSync.register(username, email, password);
+        document.getElementById('sheet-password').value = '';
+        document.getElementById('sheet-username').value = '';
+        setSheetMode('login');
+        showAuthStep('email');
+        setAuthMsg(err, 'Akun dibuat. Kami kirim tautan verifikasi ke ' + r.verifyEmail + '. Buka emailnya (cek juga Spam), ketuk tautannya, lalu masuk di sini.', 'ok');
       } else {
         await CloudSync.login(email, password);
+        document.getElementById('auth-step-email').reset();
+        closeModal('modal-auth');
+        showToast('Berhasil masuk.');
       }
-      document.getElementById('auth-step-email').reset();
-      closeModal('modal-auth');
-      showToast(sheetMode === 'register' ? 'Akun berhasil dibuat.' : 'Berhasil masuk.');
     } catch (ex) {
-      pendingUsername = '';
-      err.textContent = ex.message;
+      setAuthMsg(err, ex.message);
       shake('#auth-step-email');
     } finally {
-      btn.disabled = false; btn.textContent = idle;
+      btn.disabled = false; btn.textContent = sheetMode === 'register' ? 'Daftar' : 'Masuk';
     }
   }
 
@@ -2958,6 +3112,8 @@
 
   async function handleReceiptFile(file) {
     if (!file) return;
+    const activeSeg = document.querySelector('#tx-type-segmented .segment.active');
+    if (activeSeg && activeSeg.dataset.txType !== 'expense') return;
     const box = document.getElementById('scan-preview');
     box.hidden = false;
     box.classList.remove('done', 'fail');
@@ -3041,6 +3197,7 @@
     if (security.enabled) {
       startUnlockFlow();
     }
+    handleEmailLinkReturn();
 
     setTimeout(() => checkReminderNotifications(false), 1800);
     setInterval(() => checkReminderNotifications(false), 30 * 60 * 1000);
