@@ -228,7 +228,7 @@
   }
 
   function renderLockScreenForContext() {
-    document.getElementById('lock-forgot-btn').hidden = !(lockCtx.purpose === 'unlock' && lockCtx.step === 'verify');
+    document.getElementById('lock-forgot-btn').hidden = lockCtx.step !== 'verify';
     document.getElementById('lock-cancel-btn').hidden = (lockCtx.purpose === 'unlock');
 
     if (lockCtx.step === 'verify') {
@@ -331,21 +331,14 @@
           updateSettingsLockUI();
           showToast('Kunci aplikasi diaktifkan.');
         });
-      } else if (lockCtx.purpose === 'change') {
+      } else {
+        // 'change' atau 'forgot': simpan PIN baru
         const salt = randomSalt();
         const pinHash = await hashText(enteredPin, salt);
-        const security2 = getSecurity();
-        saveSecurity(Object.assign({}, security2, { salt, pinHash }));
+        saveSecurity(Object.assign({}, getSecurity(), { salt, pinHash }));
+        if (lockCtx.purpose === 'forgot') sessionUnlocked = true;
         closeLockScreen();
-        showToast('PIN berhasil diperbarui.');
-      } else if (lockCtx.purpose === 'forgot') {
-        const salt = randomSalt();
-        const pinHash = await hashText(enteredPin, salt);
-        const security2 = getSecurity();
-        saveSecurity(Object.assign({}, security2, { salt, pinHash }));
-        sessionUnlocked = true;
-        closeLockScreen();
-        showToast('PIN baru berhasil dibuat.');
+        showToast(lockCtx.purpose === 'forgot' ? 'PIN baru berhasil dibuat.' : 'PIN berhasil diperbarui.');
       }
     }
   }
@@ -358,6 +351,24 @@
   function cancelLockFlow() {
     if (lockCtx.purpose === 'enable') updateSettingsLockUI();
     closeLockScreen();
+  }
+
+  /* Setelah identitas terbukti (pertanyaan keamanan, akun, atau tautan email):
+     - berasal dari "nonaktifkan PIN"  -> kunci langsung dinonaktifkan
+     - selain itu                      -> buat PIN baru */
+  let recoveryOrigin = 'unlock';
+  function beginPinReset() {
+    const origin = recoveryOrigin;
+    recoveryOrigin = 'unlock';
+    if (origin === 'disable') {
+      saveSecurity({ enabled: false });
+      closeLockScreen();
+      updateSettingsLockUI();
+      showToast('Terverifikasi. Kunci aplikasi dinonaktifkan.');
+    } else {
+      openLock({ purpose: 'forgot', step: 'new1' });
+      showToast('Terverifikasi. Buat PIN baru.');
+    }
   }
 
   /* ---- Modal pertanyaan keamanan (dipakai saat setup & saat lupa PIN) ---- */
@@ -405,7 +416,7 @@
         return;
       }
       closeModal('modal-security-question');
-      openLock({ purpose: 'forgot', step: 'new1' });
+      beginPinReset();
     }
   }
 
@@ -424,6 +435,7 @@
     return (window.CloudSync && CloudSync.isReady()) ? CloudSync.currentUser() : null;
   }
   function openRecoveryModal() {
+    recoveryOrigin = lockCtx.purpose === 'disable' ? 'disable' : 'unlock';
     recMsg('');
     document.getElementById('rec-pass-form').hidden = true;
     const user = recoveryUser();
@@ -442,9 +454,7 @@
   }
   function recoveryVerified() {
     closeModal('modal-pin-recovery');
-    sfx('click');
-    openLock({ purpose: 'forgot', step: 'new1' });
-    showToast('Terverifikasi. Buat PIN baru.');
+    beginPinReset();
   }
   async function recoverWithAccount() {
     const user = recoveryUser();
@@ -518,8 +528,8 @@
       if (!ok) return;
       history.replaceState(null, '', location.pathname);
       if (getSecurity().enabled) {
-        openLock({ purpose: 'forgot', step: 'new1' });
-        showToast('Email terverifikasi. Buat PIN baru.');
+        recoveryOrigin = 'unlock';
+        beginPinReset();
       } else {
         showToast('Email terverifikasi.');
       }
@@ -621,14 +631,13 @@
       else if (name === 'paper') sfxNoise(ctx, t, 0.28, 0.1, 2400, 5200);
       else if (name === 'ching') { sfxTone(ctx, t, 1318, 1318, 0.22, 0.12); sfxTone(ctx, t + 0.09, 1760, 1760, 0.3, 0.1); }
       else if (name === 'whoosh') sfxNoise(ctx, t, 0.45, 0.12, 400, 2600);
-      else if (name === 'thump') { sfxTone(ctx, t, 150, 55, 0.35, 0.4); sfxTone(ctx, t + 0.12, 1318, 1318, 0.25, 0.08); }
     } catch (e) { /* suara hanya pemanis */ }
   }
 
   /* ---------------------------------------------------------
      SPLASH (2 detik) + GERBANG LOGIN
      Alur: splash -> (belum login) halaman login yang beranimasi
-     terus -> berhasil masuk -> layar hitam + riak -> dashboard.
+     terus -> berhasil masuk -> koin jatuh ke dompet -> dashboard.
      Sudah login / mode tanpa akun -> splash langsung ke dashboard.
   --------------------------------------------------------- */
   const GUEST_KEY = 'bukukas-guest';
@@ -672,16 +681,17 @@
     };
     entering = true;
     if (!animated) { go(); return; }
-    const overlay = document.getElementById('login-success');
+    const overlay = document.getElementById('login-welcome');
+    const name = currentUsername();
+    document.getElementById('lw-hello').textContent = name ? 'Selamat datang, ' + name : 'Selamat datang';
     overlay.classList.remove('out');
     overlay.classList.add('show');
-    sfx('thump');
-    setTimeout(() => sfx('whoosh'), 450);
+    setTimeout(() => sfx('ching'), 380);
     setTimeout(() => {
       go();
       overlay.classList.add('out');
-      setTimeout(() => overlay.classList.remove('show', 'out'), 360);
-    }, 1000);
+      setTimeout(() => overlay.classList.remove('show', 'out'), 340);
+    }, 1250);
   }
 
   function tryLeaveSplash() {
@@ -729,7 +739,7 @@
     const drop = document.getElementById('lg-drop');
     const amb = document.getElementById('lg-ambient');
     if (!drop || !amb || drop.childElementCount) return;
-    const COIN = '<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="url(#gCoin)" stroke="#B9801A" stroke-width="1.6"/><circle cx="14" cy="14" r="10.6" fill="none" stroke="#FFF1B8" stroke-width="1.2" stroke-dasharray="1.3 1.7" opacity=".85"/><circle cx="14" cy="14" r="8" fill="none" stroke="#C98A16" stroke-width="1.1"/><text x="14.6" y="19.1" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="12" fill="#fff" opacity=".55">$</text><text x="14" y="18.5" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="12" fill="#8A5F0A">$</text><path d="M7.4 9.6a8 8 0 0 1 5-3.1" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></svg>';
+    const COIN = '<svg viewBox="0 0 28 28"><use href="#sym-coin"/></svg>';
     const BILL = '<svg viewBox="0 0 40 24"><rect x="1" y="1" width="38" height="22" rx="4" fill="url(#gBill)" stroke="#16243B" stroke-width="2"/><rect x="4" y="4" width="32" height="16" rx="2" fill="none" stroke="#3FBF93" stroke-width=".9" opacity=".8"/><path d="M7 12h6M27 12h6" stroke="#3FBF93" stroke-width="1.4" stroke-linecap="round"/><circle cx="20" cy="12" r="6.2" fill="url(#gMint)" stroke="#16243B" stroke-width="1.6"/><text x="20" y="15.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="8.5" fill="#16243B">$</text></svg>';
 
     // Aliran masuk ke dompet: 9 jalur sejajar, simetris kiri-kanan dari tengah.
@@ -781,10 +791,6 @@
     const isRegister = mode === 'register';
     document.getElementById('auth-username-wrap-login').hidden = !isRegister;
     document.querySelector('#auth-submit-btn-login .lg-btn-label').textContent = isRegister ? 'Daftar' : 'Masuk';
-    document.getElementById('lg-card-title').textContent = isRegister ? 'Buat Akun Baru' : 'Masuk ke Akun Anda';
-    document.getElementById('lg-card-sub').textContent = isRegister
-      ? 'Daftar gratis, lalu datamu bisa dipulihkan di HP mana pun.'
-      : 'Data keuanganmu bisa dipulihkan di HP mana pun.';
     document.getElementById('auth-password-login').autocomplete = isRegister ? 'new-password' : 'current-password';
     document.getElementById('auth-pw-hint-login').hidden = !isRegister;
     setAuthMsg(document.getElementById('auth-error-login'), '');
@@ -2392,8 +2398,6 @@
   }
 
   function bindPengaturan() {
-    const _tt = document.getElementById('btn-theme-toggle');
-    if (_tt) _tt.addEventListener('click', toggleTheme);
     document.getElementById('settings-theme-switch').addEventListener('click', toggleTheme);
     document.getElementById('btn-export').addEventListener('click', handleExport);
     document.getElementById('btn-import').addEventListener('click', handleImportClick);
@@ -2542,7 +2546,6 @@
      PROFIL / USERNAME + HEADER
   --------------------------------------------------------- */
   const PROFILE_KEY = 'bukukas-profile';
-  let pendingUsername = '';
   let promptedUid = null;
 
   function loadProfiles() {
@@ -2583,13 +2586,6 @@
     updateHeader();
     if (!user || promptedUid === user.uid) return;
     promptedUid = user.uid;
-    if (pendingUsername) {
-      saveProfileName(user.uid, pendingUsername);
-      CloudSync.setUsername(pendingUsername).catch(() => {});
-      pendingUsername = '';
-      updateHeader(); updateAkunUI(user);
-      return;
-    }
     if (loadProfiles()[user.uid]) return;
     // akun email: username sudah diisi saat daftar (tersimpan di profil akun)
     const viaPassword = (user.providerData || []).some((p) => p.providerId === 'password');
