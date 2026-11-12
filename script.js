@@ -135,9 +135,10 @@
   }
 
   function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str == null ? '' : str;
-    return div.innerHTML;
+    // Juga meng-escape kutip supaya aman dipakai di dalam atribut (value="...", data-x="...").
+    return String(str == null ? '' : str).replace(/[&<>"']/g, (ch) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+    ));
   }
 
   /* ---------------------------------------------------------
@@ -181,12 +182,51 @@
   const lockCtx = { purpose: null, step: null, pendingPin: null };
   let lockBuffer = '';
 
+  /* PIN & jawaban keamanan disimpan sebagai hash PBKDF2 (lambat sengaja, mempersulit tebak-tebakan
+     offline). Hash lama (SHA-256 sekali jalan) tetap bisa diverifikasi lalu otomatis di-upgrade. */
+  const KDF_ITERATIONS = 200000;
+  function toHex(buf) { return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join(''); }
   async function hashText(text, salt) {
     const enc = new TextEncoder();
-    const data = enc.encode(salt + ':' + text);
-    const buf = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    const key = await crypto.subtle.importKey('raw', enc.encode(String(text)), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(String(salt)), iterations: KDF_ITERATIONS }, key, 256);
+    return toHex(bits);
   }
+  async function legacyHash(text, salt) {
+    const data = new TextEncoder().encode(salt + ':' + text);
+    return toHex(await crypto.subtle.digest('SHA-256', data));
+  }
+  /** Bandingkan secara aman; kdf = 'pbkdf2' atau kosong (hash lama). */
+  async function matchSecret(text, salt, expected, kdf) {
+    const got = kdf === 'pbkdf2' ? await hashText(text, salt) : await legacyHash(text, salt);
+    if (typeof expected !== 'string' || got.length !== expected.length) return false;
+    let diff = 0;
+    for (let i = 0; i < got.length; i++) diff |= got.charCodeAt(i) ^ expected.charCodeAt(i);
+    return diff === 0;
+  }
+
+  /* Pembatas percobaan: 5 salah berturut-turut -> tunggu 30 dtk, lalu berlipat (maks 15 menit).
+     Disimpan terpisah agar tidak hilang saat pengaturan PIN diubah. */
+  const GUARD_KEY = 'bukukas-lock-guard';
+  function readGuard() {
+    try { const g = JSON.parse(localStorage.getItem(GUARD_KEY)); if (g && typeof g === 'object') return { fails: +g.fails || 0, until: +g.until || 0 }; } catch (e) { /* abaikan */ }
+    return { fails: 0, until: 0 };
+  }
+  function writeGuard(g) { try { localStorage.setItem(GUARD_KEY, JSON.stringify(g)); } catch (e) { /* abaikan */ } }
+  function guardWaitSeconds() { return Math.max(0, Math.ceil((readGuard().until - Date.now()) / 1000)); }
+  function guardFail() {
+    const g = readGuard();
+    g.fails += 1;
+    if (g.fails % 5 === 0) {
+      const step = Math.floor(g.fails / 5) - 1;
+      g.until = Date.now() + Math.min(30 * Math.pow(2, step), 900) * 1000;
+    }
+    writeGuard(g);
+    return guardWaitSeconds();
+  }
+  function guardReset() { writeGuard({ fails: 0, until: 0 }); }
+  function guardMessage(sec) { return 'Terlalu banyak percobaan. Coba lagi ' + (sec >= 60 ? Math.ceil(sec / 60) + ' menit' : sec + ' detik') + '.'; }
+
   function randomSalt() {
     const arr = new Uint8Array(16);
     crypto.getRandomValues(arr);
@@ -289,10 +329,17 @@
     const enteredPin = lockBuffer;
 
     if (lockCtx.step === 'verify') {
-      const hash = await hashText(enteredPin, security.salt || '');
-      if (hash !== security.pinHash) {
-        shakeLock('PIN salah, coba lagi.');
+      const wait = guardWaitSeconds();
+      if (wait > 0) { shakeLock(guardMessage(wait)); return; }
+      if (!(await matchSecret(enteredPin, security.salt || '', security.pinHash, security.kdf))) {
+        const w = guardFail();
+        shakeLock(w > 0 ? guardMessage(w) : 'PIN salah, coba lagi.');
         return;
+      }
+      guardReset();
+      if (security.kdf !== 'pbkdf2') { // upgrade hash lama ke PBKDF2
+        const salt = randomSalt();
+        saveSecurity(Object.assign({}, security, { salt, pinHash: await hashText(enteredPin, salt), kdf: 'pbkdf2' }));
       }
       if (lockCtx.purpose === 'unlock') {
         sessionUnlocked = true;
@@ -327,7 +374,7 @@
           const answerSalt = randomSalt();
           const pinHash = await hashText(finalPin, salt);
           const answerHash = await hashText(answer.trim().toLowerCase(), answerSalt);
-          saveSecurity({ enabled: true, salt, pinHash, question, answerSalt, answerHash });
+          saveSecurity({ enabled: true, salt, pinHash, question, answerSalt, answerHash, kdf: 'pbkdf2', answerKdf: 'pbkdf2' });
           updateSettingsLockUI();
           showToast('Kunci aplikasi diaktifkan.');
         });
@@ -335,7 +382,7 @@
         // 'change' atau 'forgot': simpan PIN baru
         const salt = randomSalt();
         const pinHash = await hashText(enteredPin, salt);
-        saveSecurity(Object.assign({}, getSecurity(), { salt, pinHash }));
+        saveSecurity(Object.assign({}, getSecurity(), { salt, pinHash, kdf: 'pbkdf2' }));
         if (lockCtx.purpose === 'forgot') sessionUnlocked = true;
         closeLockScreen();
         showToast(lockCtx.purpose === 'forgot' ? 'PIN baru berhasil dibuat.' : 'PIN berhasil diperbarui.');
@@ -410,11 +457,14 @@
       sqCallback = null;
     } else {
       const security = getSecurity();
-      const hash = await hashText(answer.trim().toLowerCase(), security.answerSalt || '');
-      if (hash !== security.answerHash) {
-        showToast('Jawaban tidak sesuai.');
+      const wait = guardWaitSeconds();
+      if (wait > 0) { showToast(guardMessage(wait)); return; }
+      if (!(await matchSecret(answer.trim().toLowerCase(), security.answerSalt || '', security.answerHash, security.answerKdf))) {
+        const w = guardFail();
+        showToast(w > 0 ? guardMessage(w) : 'Jawaban tidak sesuai.');
         return;
       }
+      guardReset();
       closeModal('modal-security-question');
       beginPinReset();
     }

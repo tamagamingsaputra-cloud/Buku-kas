@@ -6,8 +6,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0D1110",
-  "theme_color": "#0D1110",
+  "background_color": "#F7FDFA",
+  "theme_color": "#46C39A",
   "lang": "id",
   "icons": [
     {
@@ -28,5 +28,10 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "id": "/",
+  "categories": [
+    "finance",
+    "productivity"
   ]
 }

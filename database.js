@@ -165,6 +165,78 @@ async function ensureDefaultCategories() {
 
 /* ===================== API Publik ===================== */
 
+/* ---------- Validasi cadangan (impor file & tarik dari cloud) ---------- */
+const BACKUP_LIMITS = { bytes: 5 * 1024 * 1024, perStore: 20000, text: 300, num: 1e13 };
+const ID_RE = /^[A-Za-z0-9_.-]{1,64}$/;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}/;
+const ENUM_RE = /^[a-z_]{1,24}$/;
+
+function cleanRecord(rec, depth) {
+  if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return null;
+  const out = {};
+  for (const key of Object.keys(rec)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
+    const v = rec[key];
+    const isId = key === 'id' || /Id$/.test(key);
+    if (typeof v === 'string') {
+      if (isId) { if (!ID_RE.test(v)) { if (key === 'id') return null; continue; } out[key] = v; }
+      else if (key === 'type' || key === 'kind') { if (ENUM_RE.test(v)) out[key] = v; }
+      else if (/date$/i.test(key) || key === 'date') { if (DATE_RE.test(v)) out[key] = v.slice(0, 10); }
+      else out[key] = v.slice(0, BACKUP_LIMITS.text);
+    } else if (typeof v === 'number') {
+      if (Number.isFinite(v) && Math.abs(v) < BACKUP_LIMITS.num) out[key] = v;
+    } else if (typeof v === 'boolean' || v === null) {
+      out[key] = v;
+    } else if (Array.isArray(v) && key === 'payments' && depth === 0) {
+      out[key] = v.slice(0, 500).map((p) => cleanRecord(p, 1)).filter((p) => p && p.id);
+    }
+  }
+  return out.id ? out : null;
+}
+
+/* Bentuk wajib tiap data: field angka harus angka, teks harus teks, dan data yang
+   tidak lengkap dibuang — agar file backup rusak tidak membuat aplikasi error. */
+const BACKUP_SHAPES = {
+  wallets:      { str: { name: 'Dompet', createdAt: '' }, num: { initialBalance: 0 } },
+  categories:   { str: { name: 'Kategori', createdAt: '' }, num: {}, enumOf: ['income', 'expense'] },
+  transactions: { str: { note: '', categoryId: '', walletId: '', createdAt: '' }, num: { amount: null }, enumOf: ['income', 'expense'], needDate: 'date' },
+  goals:        { str: { name: 'Target', createdAt: '' }, num: { targetAmount: 0, currentAmount: 0 } },
+  budgets:      { str: { categoryId: '' }, num: { monthlyLimit: 0 } },
+  debts:        { str: { person: '', note: '' }, num: { amount: null, remindBefore: 0 }, enumOf: ['owe', 'lent'], enumDefault: 'owe' }
+};
+function shapeRecord(name, rec) {
+  const shape = BACKUP_SHAPES[name];
+  for (const k of Object.keys(shape.str)) if (typeof rec[k] !== 'string') rec[k] = shape.str[k];
+  for (const k of Object.keys(shape.num)) {
+    if (typeof rec[k] !== 'number') { if (shape.num[k] === null) return null; rec[k] = shape.num[k]; }
+  }
+  if (shape.enumOf && !shape.enumOf.includes(rec.type)) {
+    if (shape.enumDefault) rec.type = shape.enumDefault; else return null;
+  }
+  if (shape.needDate && !rec[shape.needDate]) return null;
+  if (name === 'debts' && typeof rec.dueDate !== 'string') rec.dueDate = '';
+  if (name === 'debts' && !Array.isArray(rec.payments)) rec.payments = [];
+  if (name === 'debts') rec.payments = rec.payments.filter((p) => typeof p.amount === 'number' && typeof p.date === 'string');
+  return rec;
+}
+
+function sanitizeBackup(payload) {
+  if (!payload || typeof payload !== 'object' || !payload.data || typeof payload.data !== 'object') {
+    throw new Error('Format backup tidak valid');
+  }
+  if (JSON.stringify(payload).length > BACKUP_LIMITS.bytes) throw new Error('Backup terlalu besar');
+  const pick = (name) => {
+    const list = payload.data[name];
+    if (list == null) return [];
+    if (!Array.isArray(list)) throw new Error('Format backup tidak valid');
+    return list.slice(0, BACKUP_LIMITS.perStore).map((r) => cleanRecord(r, 0)).filter(Boolean).map((r) => shapeRecord(name, r)).filter(Boolean);
+  };
+  return {
+    wallets: pick('wallets'), categories: pick('categories'), transactions: pick('transactions'),
+    goals: pick('goals'), budgets: pick('budgets'), debts: pick('debts')
+  };
+}
+
 const DB = {
   init: async function () {
     await openDB();
@@ -245,8 +317,9 @@ const DB = {
   },
 
   importAll: async function (payload) {
-    if (!payload || !payload.data) throw new Error('Format backup tidak valid');
-    const { wallets = [], categories = [], transactions = [], goals = [], budgets = [], debts = [] } = payload.data;
+    // Validasi & bersihkan SEBELUM menghapus apa pun, supaya file rusak/berbahaya
+    // tidak menghapus data yang ada dan tidak menyusupkan markup ke tampilan.
+    const { wallets, categories, transactions, goals, budgets, debts } = sanitizeBackup(payload);
     await clearStore(STORES.wallets);
     await clearStore(STORES.categories);
     await clearStore(STORES.transactions);

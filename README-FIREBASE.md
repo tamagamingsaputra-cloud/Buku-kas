@@ -116,15 +116,40 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{db}/documents {
     match /users/{uid} {
-      allow read, write: if request.auth != null
-                         && request.auth.uid == uid
-                         && request.auth.token.email_verified == true;
+      function owner() {
+        return request.auth != null
+            && request.auth.uid == uid
+            && request.auth.token.email_verified == true;
+      }
+      function validDoc() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['email', 'createdAt', 'username', 'usernameSet', 'backup', 'backupUpdatedAt'])
+            && (!('email' in d) || d.email is string)
+            && (!('username' in d) || (d.username is string && d.username.size() <= 40))
+            && (!('backup' in d) || (d.backup is map && d.backup.app == 'buku-kas'));
+      }
+      allow read, delete: if owner();
+      allow create, update: if owner() && validDoc();
     }
   }
 }
 ```
+Selain wajib email terverifikasi dan hanya boleh menyentuh dokumen miliknya sendiri, aturan ini juga
+menolak field asing dan data cadangan yang bentuknya bukan dari Buku Kas. Semua path lain otomatis ditolak.
+Ukuran dokumen dibatasi Firestore sendiri (maks 1 MiB).
 Dengan aturan ini, akun yang emailnya belum diverifikasi tidak bisa menyimpan atau membaca data cloud,
 walaupun orang itu memanggil Firebase langsung dari luar aplikasi.
+
+### 1b. Batasi API key (sangat disarankan)
+API key Firebase memang tampak di kode (itu normal, bukan rahasia), tapi sebaiknya dikunci supaya hanya
+domainmu yang bisa memakainya: Google Cloud Console -> APIs & Services -> Credentials -> klik
+**Browser key** milik project -> *Application restrictions* = **Websites** -> tambahkan
+`https://domain-kamu.vercel.app/*` (dan domain lain yang dipakai) -> Save.
+Lalu di Firebase -> Authentication -> Settings -> **Authorized domains**, hapus domain yang tidak dipakai.
+
+### 1c. Header keamanan (sudah termasuk)
+`vercel.json` (Vercel) dan `_headers` (Cloudflare Pages) berisi Content-Security-Policy, anti-clickjacking,
+nosniff, dan HSTS. Cukup ikut ter-deploy bersama file lain.
 
 ### 2. Kebijakan password di server
 Authentication -> Settings -> **Password policy** -> aktifkan, lalu atur: minimal 8 karakter,
