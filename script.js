@@ -344,6 +344,7 @@
       if (lockCtx.purpose === 'unlock') {
         sessionUnlocked = true;
         closeLockScreen();
+        offerSecurityQuestion();
       } else if (lockCtx.purpose === 'disable') {
         saveSecurity({ enabled: false });
         closeLockScreen();
@@ -386,6 +387,7 @@
         if (lockCtx.purpose === 'forgot') sessionUnlocked = true;
         closeLockScreen();
         showToast(lockCtx.purpose === 'forgot' ? 'PIN baru berhasil dibuat.' : 'PIN berhasil diperbarui.');
+        offerSecurityQuestion();
       }
     }
   }
@@ -418,11 +420,34 @@
     }
   }
 
+  /* PIN lama (dibuat sebelum fitur ini ada) bisa tanpa pertanyaan keamanan. */
+  function hasSecurityQuestion() {
+    const sec = getSecurity();
+    return !!(sec.question && sec.answerHash && sec.answerSalt);
+  }
+  /** Tawarkan membuat pertanyaan keamanan jika belum ada (boleh ditutup/dilewati). */
+  function offerSecurityQuestion() {
+    if (hasSecurityQuestion() || !getSecurity().enabled) return;
+    setTimeout(() => {
+      openSecurityQuestionModal('set', async (question, answer) => {
+        const answerSalt = randomSalt();
+        const answerHash = await hashText(answer.trim().toLowerCase(), answerSalt);
+        saveSecurity(Object.assign({}, getSecurity(), { question, answerSalt, answerHash, answerKdf: 'pbkdf2' }));
+        showToast('Pertanyaan keamanan disimpan.');
+      }, 'Simpan');
+    }, 700);
+  }
+
   /* ---- Modal pertanyaan keamanan (dipakai saat setup & saat lupa PIN) ---- */
   let sqCallback = null;
-  function openSecurityQuestionModal(mode, onSubmit) {
-    sqCallback = onSubmit;
+  function openSecurityQuestionModal(mode, onSubmit, submitLabel) {
     const security = getSecurity();
+    if (mode === 'verify' && !(security.question && security.answerHash)) {
+      showToast('Belum ada pertanyaan keamanan. Pilih cara pemulihan lain.');
+      openModal('modal-pin-recovery');
+      return;
+    }
+    sqCallback = onSubmit;
     document.getElementById('form-security-question').reset();
     if (mode === 'set') {
       document.getElementById('sq-modal-title').textContent = 'Buat Pertanyaan Keamanan';
@@ -430,7 +455,7 @@
       document.getElementById('sq-select-wrap').hidden = false;
       document.getElementById('sq-fixed-question').hidden = true;
       document.getElementById('sq-answer-label').textContent = 'Jawaban';
-      document.getElementById('sq-submit-btn').textContent = 'Simpan & Aktifkan';
+      document.getElementById('sq-submit-btn').textContent = submitLabel || 'Simpan & Aktifkan';
     } else {
       document.getElementById('sq-modal-title').textContent = 'Lupa PIN';
       document.getElementById('sq-intro').textContent = 'Jawab pertanyaan keamananmu untuk membuat PIN baru.';
@@ -488,6 +513,7 @@
     recoveryOrigin = lockCtx.purpose === 'disable' ? 'disable' : 'unlock';
     recMsg('');
     document.getElementById('rec-pass-form').hidden = true;
+    document.getElementById('rec-code-form').hidden = true;
     const user = recoveryUser();
     const method = user ? CloudSync.authMethod() : 'none';
     const accDesc = document.getElementById('rec-account-desc');
@@ -497,9 +523,10 @@
     if (method === 'google') accDesc.textContent = 'Masuk ulang dengan akun Google-mu';
     else if (method === 'password') accDesc.textContent = 'Masukkan password akunmu';
     else accDesc.textContent = 'Hanya untuk pengguna yang sudah masuk akun';
-    emailDesc.textContent = user && user.email ? 'Kirim ke ' + maskEmail(user.email) : 'Hanya untuk pengguna yang sudah masuk akun';
+    emailDesc.textContent = user && user.email ? 'Kode 6 digit dikirim ke ' + maskEmail(user.email) : 'Hanya untuk pengguna yang sudah masuk akun';
     accBtn.classList.toggle('is-off', method === 'none');
     mailBtn.classList.toggle('is-off', !(user && user.email));
+    document.getElementById('rec-question').hidden = !hasSecurityQuestion();
     openModal('modal-pin-recovery');
   }
   function recoveryVerified() {
@@ -538,23 +565,38 @@
     catch (err) { recMsg(err.message, 'err'); shake('#rec-pass-form'); }
     finally { btn.disabled = false; }
   }
-  let recLinkCooldown = 0;
+  let recCodeCooldown = 0;
   async function recoverWithEmail() {
     const user = recoveryUser();
     if (!user || !user.email) {
-      recMsg('Belum ada akun yang masuk di perangkat ini, jadi tautan tidak bisa dikirim. Pakai cara lain.', 'err');
+      recMsg('Belum ada akun yang masuk di perangkat ini, jadi kode tidak bisa dikirim. Pakai cara lain.', 'err');
       shake('#rec-email');
       return;
     }
-    const left = Math.ceil((recLinkCooldown - Date.now()) / 1000);
-    if (left > 0) { recMsg('Tunggu ' + left + ' detik sebelum mengirim ulang.', 'err'); return; }
+    const left = Math.ceil((recCodeCooldown - Date.now()) / 1000);
+    if (left > 0) { recMsg('Tunggu ' + left + ' detik sebelum meminta kode lagi.', 'err'); return; }
     const btn = document.getElementById('rec-email');
-    btn.classList.add('busy'); recMsg('Mengirim tautan…');
+    btn.classList.add('busy'); recMsg('Mengirim kode…');
     try {
-      const email = await CloudSync.sendRecoveryLink();
-      recLinkCooldown = Date.now() + 60000;
-      recMsg('Tautan dikirim ke ' + maskEmail(email) + '. Buka emailnya dan ketuk tautan itu. Kamu akan langsung diminta membuat PIN baru. Cek folder Spam jika belum masuk.', 'ok');
+      const email = await CloudSync.requestPinCode();
+      recCodeCooldown = Date.now() + 60000;
+      const form = document.getElementById('rec-code-form');
+      form.hidden = false;
+      document.getElementById('rec-code-input').value = '';
+      document.getElementById('rec-code-input').focus();
+      recMsg('Kode 6 digit dikirim ke ' + maskEmail(email) + ' (berlaku 10 menit). Cek juga folder Spam. Masukkan kodenya di kolom bawah.', 'ok');
     } catch (e) { recMsg(e.message, 'err'); shake(btn); }
+    finally { btn.classList.remove('busy'); }
+  }
+  async function recoverWithCode(e) {
+    e.preventDefault();
+    const input = document.getElementById('rec-code-input');
+    const btn = document.getElementById('rec-code-btn');
+    const code = input.value.replace(/\D/g, '');
+    if (code.length !== 6) { recMsg('Masukkan 6 digit kode dari email.', 'err'); shake('#rec-code-form'); return; }
+    btn.classList.add('busy'); recMsg('Memeriksa kode…');
+    try { await CloudSync.verifyPinCode(code); recoveryVerified(); }
+    catch (err) { recMsg(err.message, 'err'); shake('#rec-code-form'); input.select(); }
     finally { btn.classList.remove('busy'); }
   }
   function recoverWipe() {
@@ -568,22 +610,6 @@
       renderAll();
       showToast('Aplikasi direset. Kunci PIN dinonaktifkan.');
     });
-  }
-
-  /* Dipanggil saat aplikasi dibuka dari tautan email pemulihan */
-  async function handleEmailLinkReturn() {
-    if (!(window.CloudSync && CloudSync.isReady())) return;
-    try {
-      const ok = await CloudSync.completeEmailLink();
-      if (!ok) return;
-      history.replaceState(null, '', location.pathname);
-      if (getSecurity().enabled) {
-        recoveryOrigin = 'unlock';
-        beginPinReset();
-      } else {
-        showToast('Email terverifikasi.');
-      }
-    } catch (e) { showToast(e.message); }
   }
 
   function bindLockScreen() {
@@ -600,6 +626,7 @@
     document.getElementById('rec-account').addEventListener('click', recoverWithAccount);
     document.getElementById('rec-pass-form').addEventListener('submit', recoverWithPassword);
     document.getElementById('rec-email').addEventListener('click', recoverWithEmail);
+    document.getElementById('rec-code-form').addEventListener('submit', recoverWithCode);
     document.getElementById('rec-wipe').addEventListener('click', recoverWipe);
     document.getElementById('lock-cancel-btn').addEventListener('click', cancelLockFlow);
     document.getElementById('form-security-question').addEventListener('submit', handleSecurityQuestionSubmit);
@@ -3243,7 +3270,6 @@
     if (security.enabled) {
       startUnlockFlow();
     }
-    handleEmailLinkReturn();
 
     setTimeout(() => checkReminderNotifications(false), 1800);
     setInterval(() => checkReminderNotifications(false), 30 * 60 * 1000);

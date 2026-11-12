@@ -1625,6 +1625,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .rec-list { display: flex; flex-direction: column; gap: 8px; }
 .rec-pass { display: flex; gap: 8px; margin: -2px 0 2px; animation: viewIn .3s ease both; }
 .rec-pass[hidden] { display: none; }
+#rec-code-input { letter-spacing: 6px; text-align: center; font-size: 18px; font-weight: 700; }
 .rec-pass input { flex: 1; min-width: 0; border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); border-radius: 13px; padding: 12px 14px; font-size: 14.5px; }
 .rec-pass .btn-primary { width: auto; padding: 0 18px; border-radius: 13px; }
 .rec-msg { min-height: 18px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); margin: 0; }
@@ -1632,6 +1633,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .rec-msg.ok { color: var(--success); }
 .rec-wipe { border: none; background: none; color: var(--danger); font-size: 12.5px; font-weight: 600; padding: 8px 4px; font-family: inherit; align-self: center; }
 .menu-item.is-off { opacity: .55; }
+.menu-item[hidden] { display: none; }
 .menu-item.busy .menu-item-icon { animation: lensPulse 1s ease-in-out infinite; }
 
 .scan-btn[hidden] { display: none; }

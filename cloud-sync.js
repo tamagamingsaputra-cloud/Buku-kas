@@ -123,6 +123,26 @@
     }
   }
 
+  /** Panggil fungsi server /api/pin-otp dengan token akun yang sedang masuk. */
+  async function pinOtp(action, code) {
+    if (!ready()) throw new Error('Fitur akun belum aktif di versi ini.');
+    const u = firebase.auth().currentUser;
+    if (!u) throw new Error('Belum ada akun yang masuk di perangkat ini.');
+    let res, data = {};
+    try {
+      const token = await u.getIdToken();
+      res = await fetch('/api/pin-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ action, code })
+      });
+      data = await res.json().catch(() => ({}));
+    } catch (e) { throw new Error('Tidak bisa terhubung ke server. Periksa koneksi internetmu.'); }
+    if (res.status === 404 || data.code === 'not_configured') throw new Error('Kode email belum diaktifkan di server. Pakai cara pemulihan lain.');
+    if (!res.ok) throw new Error(data.error || 'Permintaan gagal, coba lagi.');
+    return data;
+  }
+
   const CloudSync = {
     isReady: ready,
 
@@ -274,40 +294,9 @@
       }
     },
 
-    /** Kirim tautan verifikasi ke email akun yang sedang masuk. Mengembalikan email-nya. */
-    sendRecoveryLink: async function () {
-      if (!ready()) throw new Error('Fitur akun belum aktif di versi ini.');
-      const u = firebase.auth().currentUser;
-      if (!u || !u.email) throw new Error('Belum ada akun yang masuk di perangkat ini.');
-      try {
-        await firebase.auth().sendSignInLinkToEmail(u.email, {
-          url: location.origin + location.pathname + '?pinreset=1',
-          handleCodeInApp: true
-        });
-        try { localStorage.setItem('bukukas-emaillink', u.email); } catch (e) { /* abaikan */ }
-        return u.email;
-      } catch (err) {
-        throw new Error(friendlyAuthError(err));
-      }
-    },
-
-    /** Dipanggil saat aplikasi dibuka: jika URL berisi tautan email yang valid, selesaikan verifikasi. */
-    completeEmailLink: async function () {
-      if (!ready()) return false;
-      const auth = firebase.auth();
-      if (!auth.isSignInWithEmailLink(location.href)) return false;
-      let email = null;
-      try { email = localStorage.getItem('bukukas-emaillink'); } catch (e) { /* abaikan */ }
-      if (!email) email = window.prompt('Masukkan email yang menerima tautan verifikasi:');
-      if (!email) return false;
-      try {
-        await auth.signInWithEmailLink(email, location.href);
-        try { localStorage.removeItem('bukukas-emaillink'); } catch (e) { /* abaikan */ }
-        return true;
-      } catch (err) {
-        throw new Error(friendlyAuthError(err));
-      }
-    },
+    /** Kode OTP pemulihan PIN: dibuat & dicek di server (api/pin-otp.js), dikirim ke email akun. */
+    requestPinCode: async function () { await pinOtp('send'); const u = firebase.auth().currentUser; return u && u.email; },
+    verifyPinCode: async function (code) { await pinOtp('verify', code); return true; },
 
     logout: async function () {
       if (!ready()) return;
