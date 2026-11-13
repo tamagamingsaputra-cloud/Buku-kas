@@ -5,7 +5,7 @@
    yang diatur di script.js, bukan di sini.
    ============================================================ */
 
-const DB_NAME = 'bukukas-db';
+const DB_NAME = 'bukukas-db';   // data milik "tamu" (tanpa akun); akun memakai bukukas-db-<uid>
 const DB_VERSION = 3;
 
 const STORES = {
@@ -18,13 +18,20 @@ const STORES = {
 };
 
 let _dbPromise = null;
+let _dbName = DB_NAME;
+
+/** Nama database untuk pemilik tertentu: 'guest' = tanpa akun, selain itu = uid akun. */
+function dbNameFor(owner) {
+  const safe = String(owner || 'guest').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64);
+  return !safe || safe === 'guest' ? DB_NAME : DB_NAME + '-' + safe;
+}
 
 /** Membuka (atau membuat) koneksi database. Di-cache supaya hanya sekali. */
 function openDB() {
   if (_dbPromise) return _dbPromise;
 
   _dbPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const request = indexedDB.open(_dbName, DB_VERSION);
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
@@ -238,6 +245,21 @@ function sanitizeBackup(payload) {
 }
 
 const DB = {
+  /** Pindah ke database milik pemilik lain (tamu / akun). Data tiap pemilik terpisah di perangkat. */
+  useOwner: async function (owner) {
+    const name = dbNameFor(owner);
+    if (name === _dbName && _dbPromise) return;
+    if (_dbPromise) { try { (await _dbPromise).close(); } catch (e) { /* abaikan */ } }
+    _dbName = name;
+    _dbPromise = null;
+  },
+
+  /** True jika database pemilik ini masih kosong (belum ada transaksi/dompet tambahan/target/hutang). */
+  isEmpty: async function () {
+    const [w, t, g, d] = await Promise.all([getAll(STORES.wallets), getAll(STORES.transactions), getAll(STORES.goals), getAll(STORES.debts)]);
+    return w.length <= 1 && !t.length && !g.length && !d.length;
+  },
+
   init: async function () {
     await openDB();
     await ensureDefaultCategories();

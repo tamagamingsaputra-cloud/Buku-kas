@@ -85,32 +85,21 @@ Tesseract.js (gratis). Pertama kali dipakai perlu internet untuk mengunduh pemba
 berikutnya tersimpan di browser. Foto tidak diunggah dan tidak disimpan. Hasilnya selalu
 perlu dicek sebelum disimpan.
 
-## Lupa PIN: kode 6 digit ke email
+## Lupa PIN
 
-Tombol **Lupa PIN?** di layar kunci menawarkan empat cara: jawab pertanyaan keamanan, verifikasi dengan akun,
-**kirim kode 6 digit ke email akun**, atau reset aplikasi. Untuk cara kode email, kode dibuat dan dicek di
-**server** (fungsi `api/pin-otp.js` di Vercel, gratis), karena kode yang dibuat di aplikasi bisa diakali.
-Aturannya: kode acak 6 digit, berlaku 10 menit, sekali pakai, hanya disimpan sebagai hash, dikirim hanya ke email
-akun yang sedang masuk (dan sudah terverifikasi), maksimal 3 permintaan per 15 menit, dan kode hangus setelah 5 salah.
+Di layar kunci, **Lupa PIN?** membuka dialog dengan dua tombol: **Batal** dan **Konfirmasi**. Setelah
+Konfirmasi, kamu membuat PIN baru lalu mengulanginya (2 langkah). Karena tombol Konfirmasi tidak membuktikan
+siapa pemegang HP, PIN baru hanya diberikan dengan **menghapus data di perangkat itu**:
+- Pengguna **tanpa akun**: datanya hilang permanen.
+- Pengguna **akun**: data di perangkat dihapus dan akun otomatis **keluar**. Saat masuk lagi (email/password
+  atau Google), data dipulihkan otomatis dari cadangan cloud (pastikan sudah pernah "Cadangkan ke cloud").
+Tidak ada server tambahan yang dibutuhkan.
 
-### Cara mengaktifkan (sekali saja)
-1. **Service account Firebase**: Firebase Console -> Project settings (ikon roda gigi) -> **Service accounts** ->
-   **Generate new private key** -> file JSON terunduh. **Jangan unggah file ini ke GitHub.**
-2. **App Password Gmail** (untuk mengirim email): akun Google -> Keamanan -> aktifkan *Verifikasi 2 langkah*,
-   lalu cari **Sandi aplikasi** -> buat satu (nama bebas) -> salin 16 hurufnya. Email pengirim = Gmail itu.
-3. **Isi di Vercel**: Project -> Settings -> **Environment Variables**, tambahkan empat variabel
-   (centang Production):
-   - `FIREBASE_SERVICE_ACCOUNT` = seluruh isi file JSON tadi (tempel apa adanya)
-   - `GMAIL_USER` = alamat Gmail pengirim
-   - `GMAIL_APP_PASSWORD` = 16 huruf sandi aplikasi (tanpa spasi)
-   - `OTP_PEPPER` = teks acak panjang buatanmu sendiri (minimal 32 karakter)
-4. **Deploy ulang** (Deployments -> titik tiga -> Redeploy). Vercel otomatis memasang `firebase-admin` dan
-   `nodemailer` dari `package.json`.
-5. Tes: layar kunci -> Lupa PIN -> **Kirim kode ke email**. Jika muncul "Kode email belum diaktifkan di server",
-   salah satu variabel di langkah 3 belum terisi atau belum di-redeploy.
-
-Batas Gmail gratis sekitar 500 email/hari, lebih dari cukup. Kode tersimpan di koleksi Firestore `pinOtp`
-yang hanya bisa diakses server (aturan Firestore di bawah menolak akses dari aplikasi).
+## Data & PIN per pemilik
+Data (IndexedDB) dan PIN dipisah per pemilik di perangkat: satu untuk **tanpa akun (tamu)** dan satu untuk
+setiap akun. Akun baru tidak mewarisi PIN atau data akun lain. Data tamu yang dibuat sebelum versi ini tetap ada
+di mode tamu ("Lanjutkan tanpa akun"). Akun yang masuk dengan perangkat/akun kosong otomatis memulihkan
+cadangan cloud jika ada.
 
 ---
 

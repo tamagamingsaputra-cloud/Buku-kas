@@ -8,6 +8,10 @@
   'use strict';
 
   const SETTINGS_KEY = 'bukukas-settings';
+  /* Data & PIN dipisah per PEMILIK: 'guest' (tanpa akun) atau uid akun. Dengan begitu akun baru /
+     mode tanpa akun tidak mewarisi PIN dan data milik akun lain di perangkat yang sama. */
+  const OWNER_KEY = 'bukukas-owner';
+  let currentOwner = (() => { try { return localStorage.getItem(OWNER_KEY) || 'guest'; } catch (e) { return 'guest'; } })();
 
   /* ---------------------------------------------------------
      STATE
@@ -207,12 +211,12 @@
 
   /* Pembatas percobaan: 5 salah berturut-turut -> tunggu 30 dtk, lalu berlipat (maks 15 menit).
      Disimpan terpisah agar tidak hilang saat pengaturan PIN diubah. */
-  const GUARD_KEY = 'bukukas-lock-guard';
+  const guardKey = () => 'bukukas-lock-guard-' + currentOwner;
   function readGuard() {
-    try { const g = JSON.parse(localStorage.getItem(GUARD_KEY)); if (g && typeof g === 'object') return { fails: +g.fails || 0, until: +g.until || 0 }; } catch (e) { /* abaikan */ }
+    try { const g = JSON.parse(localStorage.getItem(guardKey())); if (g && typeof g === 'object') return { fails: +g.fails || 0, until: +g.until || 0 }; } catch (e) { /* abaikan */ }
     return { fails: 0, until: 0 };
   }
-  function writeGuard(g) { try { localStorage.setItem(GUARD_KEY, JSON.stringify(g)); } catch (e) { /* abaikan */ } }
+  function writeGuard(g) { try { localStorage.setItem(guardKey(), JSON.stringify(g)); } catch (e) { /* abaikan */ } }
   function guardWaitSeconds() { return Math.max(0, Math.ceil((readGuard().until - Date.now()) / 1000)); }
   function guardFail() {
     const g = readGuard();
@@ -232,13 +236,21 @@
     crypto.getRandomValues(arr);
     return Array.from(arr).map((b) => b.toString(16).padStart(2, '0')).join('');
   }
+  /* Pengaturan keamanan disimpan per pemilik: settings.securityBy[owner].
+     Format lama (settings.security, satu untuk seluruh perangkat) dianggap milik 'guest'. */
+  function securityMap(settings) {
+    if (settings.security && !settings.securityBy) {
+      settings.securityBy = { guest: settings.security };
+      delete settings.security;
+    }
+    return settings.securityBy || (settings.securityBy = {});
+  }
   function getSecurity() {
-    const settings = loadSettings();
-    return settings.security || { enabled: false };
+    return securityMap(loadSettings())[currentOwner] || { enabled: false };
   }
   function saveSecurity(security) {
     const settings = loadSettings();
-    settings.security = security;
+    securityMap(settings)[currentOwner] = security;
     saveSettings(settings);
   }
 
@@ -344,7 +356,6 @@
       if (lockCtx.purpose === 'unlock') {
         sessionUnlocked = true;
         closeLockScreen();
-        offerSecurityQuestion();
       } else if (lockCtx.purpose === 'disable') {
         saveSecurity({ enabled: false });
         closeLockScreen();
@@ -367,27 +378,17 @@
         openLock({ purpose: lockCtx.purpose, step: 'new1' });
         return;
       }
-      if (lockCtx.purpose === 'enable') {
-        const finalPin = enteredPin;
-        closeLockScreen();
-        openSecurityQuestionModal('set', async (question, answer) => {
-          const salt = randomSalt();
-          const answerSalt = randomSalt();
-          const pinHash = await hashText(finalPin, salt);
-          const answerHash = await hashText(answer.trim().toLowerCase(), answerSalt);
-          saveSecurity({ enabled: true, salt, pinHash, question, answerSalt, answerHash, kdf: 'pbkdf2', answerKdf: 'pbkdf2' });
-          updateSettingsLockUI();
-          showToast('Kunci aplikasi diaktifkan.');
-        });
+      if (lockCtx.purpose === 'forgot') {
+        await finishForgotPin(enteredPin);
       } else {
-        // 'change' atau 'forgot': simpan PIN baru
         const salt = randomSalt();
         const pinHash = await hashText(enteredPin, salt);
-        saveSecurity(Object.assign({}, getSecurity(), { salt, pinHash, kdf: 'pbkdf2' }));
-        if (lockCtx.purpose === 'forgot') sessionUnlocked = true;
+        const wasEnable = lockCtx.purpose === 'enable';
+        saveSecurity(Object.assign({}, wasEnable ? {} : getSecurity(), { enabled: true, salt, pinHash, kdf: 'pbkdf2' }));
+        if (wasEnable) sessionUnlocked = true;
         closeLockScreen();
-        showToast(lockCtx.purpose === 'forgot' ? 'PIN baru berhasil dibuat.' : 'PIN berhasil diperbarui.');
-        offerSecurityQuestion();
+        updateSettingsLockUI();
+        showToast(wasEnable ? 'Kunci aplikasi diaktifkan.' : 'PIN berhasil diperbarui.');
       }
     }
   }
@@ -399,217 +400,40 @@
 
   function cancelLockFlow() {
     if (lockCtx.purpose === 'enable') updateSettingsLockUI();
+    // Batal dari Lupa PIN saat belum terbuka: kembali ke layar PIN, jangan membuka aplikasi.
+    if (lockCtx.purpose === 'forgot' && !sessionUnlocked) { startUnlockFlow(); return; }
     closeLockScreen();
   }
 
-  /* Setelah identitas terbukti (pertanyaan keamanan, akun, atau tautan email):
-     - berasal dari "nonaktifkan PIN"  -> kunci langsung dinonaktifkan
-     - selain itu                      -> buat PIN baru */
-  let recoveryOrigin = 'unlock';
-  function beginPinReset() {
-    const origin = recoveryOrigin;
-    recoveryOrigin = 'unlock';
-    if (origin === 'disable') {
-      saveSecurity({ enabled: false });
-      closeLockScreen();
-      updateSettingsLockUI();
-      showToast('Terverifikasi. Kunci aplikasi dinonaktifkan.');
+  /* ---- Lupa PIN: Batal / Konfirmasi -> buat PIN baru + ulangi -> data di perangkat dihapus ----
+     Konfirmasi saja tidak membuktikan pemegang HP adalah pemilik, jadi PIN baru hanya diberikan
+     dengan menghapus data lokal (dan keluar dari akun). Data akun kembali dari cloud saat masuk lagi. */
+  function openForgotPin() {
+    document.getElementById('forgot-desc').textContent = currentAuthUser
+      ? 'Untuk keamanan, data di perangkat ini akan dihapus dan kamu keluar dari akun setelah PIN baru dibuat. Masuk lagi untuk memulihkan data dari cloud.'
+      : 'Untuk keamanan, semua data di perangkat ini akan dihapus permanen setelah PIN baru dibuat. Data tanpa akun tidak bisa dipulihkan.';
+    openModal('modal-forgot-pin');
+  }
+  function confirmForgotPin() {
+    closeModal('modal-forgot-pin');
+    openLock({ purpose: 'forgot', step: 'new1' });
+  }
+  async function finishForgotPin(pin) {
+    const salt = randomSalt();
+    saveSecurity({ enabled: true, salt, pinHash: await hashText(pin, salt), kdf: 'pbkdf2' });
+    guardReset();
+    await DB.resetAll();
+    sessionUnlocked = true;
+    closeLockScreen();
+    updateSettingsLockUI();
+    if (currentAuthUser) {
+      showToast('PIN baru dibuat. Masuk lagi untuk memulihkan data.');
+      try { await CloudSync.logout(); } catch (e) { /* abaikan */ }
     } else {
-      openLock({ purpose: 'forgot', step: 'new1' });
-      showToast('Terverifikasi. Buat PIN baru.');
-    }
-  }
-
-  /* PIN lama (dibuat sebelum fitur ini ada) bisa tanpa pertanyaan keamanan. */
-  function hasSecurityQuestion() {
-    const sec = getSecurity();
-    return !!(sec.question && sec.answerHash && sec.answerSalt);
-  }
-  /** Tawarkan membuat pertanyaan keamanan jika belum ada (boleh ditutup/dilewati). */
-  function offerSecurityQuestion() {
-    if (hasSecurityQuestion() || !getSecurity().enabled) return;
-    setTimeout(() => {
-      openSecurityQuestionModal('set', async (question, answer) => {
-        const answerSalt = randomSalt();
-        const answerHash = await hashText(answer.trim().toLowerCase(), answerSalt);
-        saveSecurity(Object.assign({}, getSecurity(), { question, answerSalt, answerHash, answerKdf: 'pbkdf2' }));
-        showToast('Pertanyaan keamanan disimpan.');
-      }, 'Simpan');
-    }, 700);
-  }
-
-  /* ---- Modal pertanyaan keamanan (dipakai saat setup & saat lupa PIN) ---- */
-  let sqCallback = null;
-  function openSecurityQuestionModal(mode, onSubmit, submitLabel) {
-    const security = getSecurity();
-    if (mode === 'verify' && !(security.question && security.answerHash)) {
-      showToast('Belum ada pertanyaan keamanan. Pilih cara pemulihan lain.');
-      openModal('modal-pin-recovery');
-      return;
-    }
-    sqCallback = onSubmit;
-    document.getElementById('form-security-question').reset();
-    if (mode === 'set') {
-      document.getElementById('sq-modal-title').textContent = 'Buat Pertanyaan Keamanan';
-      document.getElementById('sq-intro').textContent = 'Digunakan untuk memulihkan akses jika kamu lupa PIN.';
-      document.getElementById('sq-select-wrap').hidden = false;
-      document.getElementById('sq-fixed-question').hidden = true;
-      document.getElementById('sq-answer-label').textContent = 'Jawaban';
-      document.getElementById('sq-submit-btn').textContent = submitLabel || 'Simpan & Aktifkan';
-    } else {
-      document.getElementById('sq-modal-title').textContent = 'Lupa PIN';
-      document.getElementById('sq-intro').textContent = 'Jawab pertanyaan keamananmu untuk membuat PIN baru.';
-      document.getElementById('sq-select-wrap').hidden = true;
-      document.getElementById('sq-fixed-question').hidden = false;
-      document.getElementById('sq-fixed-question').textContent = security.question || '';
-      document.getElementById('sq-answer-label').textContent = 'Jawabanmu';
-      document.getElementById('sq-submit-btn').textContent = 'Verifikasi';
-    }
-    openModal('modal-security-question');
-    document.getElementById('form-security-question').dataset.mode = mode;
-  }
-
-  async function handleSecurityQuestionSubmit(e) {
-    e.preventDefault();
-    const mode = e.target.dataset.mode;
-    const answer = document.getElementById('sq-answer').value.trim();
-    if (!answer) return;
-
-    if (mode === 'set') {
-      const question = document.getElementById('sq-select').value;
-      closeModal('modal-security-question');
-      if (sqCallback) await sqCallback(question, answer);
-      sqCallback = null;
-    } else {
-      const security = getSecurity();
-      const wait = guardWaitSeconds();
-      if (wait > 0) { showToast(guardMessage(wait)); return; }
-      if (!(await matchSecret(answer.trim().toLowerCase(), security.answerSalt || '', security.answerHash, security.answerKdf))) {
-        const w = guardFail();
-        showToast(w > 0 ? guardMessage(w) : 'Jawaban tidak sesuai.');
-        return;
-      }
-      guardReset();
-      closeModal('modal-security-question');
-      beginPinReset();
-    }
-  }
-
-  /* ---- Lupa PIN: tiga cara pemulihan + reset sebagai pilihan terakhir ---- */
-  function maskEmail(email) {
-    const [u, d] = String(email || '').split('@');
-    if (!d) return '';
-    return (u.length <= 2 ? u.charAt(0) : u.slice(0, 2)) + '***@' + d;
-  }
-  function recMsg(text, kind) {
-    const el = document.getElementById('rec-msg');
-    el.textContent = text || '';
-    el.className = 'rec-msg' + (kind ? ' ' + kind : '');
-  }
-  function recoveryUser() {
-    return (window.CloudSync && CloudSync.isReady()) ? CloudSync.currentUser() : null;
-  }
-  function openRecoveryModal() {
-    recoveryOrigin = lockCtx.purpose === 'disable' ? 'disable' : 'unlock';
-    recMsg('');
-    document.getElementById('rec-pass-form').hidden = true;
-    document.getElementById('rec-code-form').hidden = true;
-    const user = recoveryUser();
-    const method = user ? CloudSync.authMethod() : 'none';
-    const accDesc = document.getElementById('rec-account-desc');
-    const emailDesc = document.getElementById('rec-email-desc');
-    const accBtn = document.getElementById('rec-account');
-    const mailBtn = document.getElementById('rec-email');
-    if (method === 'google') accDesc.textContent = 'Masuk ulang dengan akun Google-mu';
-    else if (method === 'password') accDesc.textContent = 'Masukkan password akunmu';
-    else accDesc.textContent = 'Hanya untuk pengguna yang sudah masuk akun';
-    emailDesc.textContent = user && user.email ? 'Kode 6 digit dikirim ke ' + maskEmail(user.email) : 'Hanya untuk pengguna yang sudah masuk akun';
-    accBtn.classList.toggle('is-off', method === 'none');
-    mailBtn.classList.toggle('is-off', !(user && user.email));
-    document.getElementById('rec-question').hidden = !hasSecurityQuestion();
-    openModal('modal-pin-recovery');
-  }
-  function recoveryVerified() {
-    closeModal('modal-pin-recovery');
-    beginPinReset();
-  }
-  async function recoverWithAccount() {
-    const user = recoveryUser();
-    const method = user ? CloudSync.authMethod() : 'none';
-    if (method === 'none') {
-      recMsg(window.CloudSync && CloudSync.isReady()
-        ? 'Belum ada akun yang masuk di perangkat ini. Tunggu sebentar jika baru membuka aplikasi, atau pakai cara lain.'
-        : 'Fitur akun belum aktif di versi ini. Pakai pertanyaan keamanan.', 'err');
-      shake('#rec-account');
-      return;
-    }
-    if (method === 'password') {
-      document.getElementById('rec-pass-form').hidden = false;
-      document.getElementById('rec-pass-input').focus();
-      recMsg('');
-      return;
-    }
-    const btn = document.getElementById('rec-account');
-    btn.classList.add('busy'); recMsg('Membuka verifikasi Google…');
-    try { await CloudSync.reauth(); recoveryVerified(); }
-    catch (e) { recMsg(e.message, 'err'); shake(btn); }
-    finally { btn.classList.remove('busy'); }
-  }
-  async function recoverWithPassword(e) {
-    e.preventDefault();
-    const input = document.getElementById('rec-pass-input');
-    const btn = document.getElementById('rec-pass-btn');
-    if (!input.value) { shake('#rec-pass-form'); return; }
-    btn.disabled = true; recMsg('Memeriksa…');
-    try { await CloudSync.reauth(input.value); input.value = ''; recoveryVerified(); }
-    catch (err) { recMsg(err.message, 'err'); shake('#rec-pass-form'); }
-    finally { btn.disabled = false; }
-  }
-  let recCodeCooldown = 0;
-  async function recoverWithEmail() {
-    const user = recoveryUser();
-    if (!user || !user.email) {
-      recMsg('Belum ada akun yang masuk di perangkat ini, jadi kode tidak bisa dikirim. Pakai cara lain.', 'err');
-      shake('#rec-email');
-      return;
-    }
-    const left = Math.ceil((recCodeCooldown - Date.now()) / 1000);
-    if (left > 0) { recMsg('Tunggu ' + left + ' detik sebelum meminta kode lagi.', 'err'); return; }
-    const btn = document.getElementById('rec-email');
-    btn.classList.add('busy'); recMsg('Mengirim kode…');
-    try {
-      const email = await CloudSync.requestPinCode();
-      recCodeCooldown = Date.now() + 60000;
-      const form = document.getElementById('rec-code-form');
-      form.hidden = false;
-      document.getElementById('rec-code-input').value = '';
-      document.getElementById('rec-code-input').focus();
-      recMsg('Kode 6 digit dikirim ke ' + maskEmail(email) + ' (berlaku 10 menit). Cek juga folder Spam. Masukkan kodenya di kolom bawah.', 'ok');
-    } catch (e) { recMsg(e.message, 'err'); shake(btn); }
-    finally { btn.classList.remove('busy'); }
-  }
-  async function recoverWithCode(e) {
-    e.preventDefault();
-    const input = document.getElementById('rec-code-input');
-    const btn = document.getElementById('rec-code-btn');
-    const code = input.value.replace(/\D/g, '');
-    if (code.length !== 6) { recMsg('Masukkan 6 digit kode dari email.', 'err'); shake('#rec-code-form'); return; }
-    btn.classList.add('busy'); recMsg('Memeriksa kode…');
-    try { await CloudSync.verifyPinCode(code); recoveryVerified(); }
-    catch (err) { recMsg(err.message, 'err'); shake('#rec-code-form'); input.select(); }
-    finally { btn.classList.remove('busy'); }
-  }
-  function recoverWipe() {
-    askConfirm('PIN dan SEMUA data di perangkat ini akan dihapus. Jika datamu sudah disinkronkan ke cloud, kamu bisa memulihkannya setelah masuk akun. Lanjutkan?', async () => {
-      await DB.resetAll();
-      saveSecurity({ enabled: false });
-      closeModal('modal-pin-recovery');
-      closeLockScreen();
-      updateSettingsLockUI();
       await reloadAll();
       renderAll();
-      showToast('Aplikasi direset. Kunci PIN dinonaktifkan.');
-    });
+      showToast('PIN baru berhasil dibuat.');
+    }
   }
 
   function bindLockScreen() {
@@ -618,18 +442,9 @@
       if (!btn || !btn.dataset.key) return;
       handleLockKey(btn.dataset.key);
     });
-    document.getElementById('lock-forgot-btn').addEventListener('click', openRecoveryModal);
-    document.getElementById('rec-question').addEventListener('click', () => {
-      closeModal('modal-pin-recovery');
-      openSecurityQuestionModal('verify', null);
-    });
-    document.getElementById('rec-account').addEventListener('click', recoverWithAccount);
-    document.getElementById('rec-pass-form').addEventListener('submit', recoverWithPassword);
-    document.getElementById('rec-email').addEventListener('click', recoverWithEmail);
-    document.getElementById('rec-code-form').addEventListener('submit', recoverWithCode);
-    document.getElementById('rec-wipe').addEventListener('click', recoverWipe);
+    document.getElementById('lock-forgot-btn').addEventListener('click', openForgotPin);
+    document.getElementById('forgot-confirm-btn').addEventListener('click', confirmForgotPin);
     document.getElementById('lock-cancel-btn').addEventListener('click', cancelLockFlow);
-    document.getElementById('form-security-question').addEventListener('submit', handleSecurityQuestionSubmit);
   }
 
   function bindSecuritySettings() {
@@ -788,7 +603,35 @@
   setTimeout(() => sfx('paper'), 640);
   setTimeout(() => { splashLeaveReady = true; tryLeaveSplash(); }, 1550);
 
-  function handleAuthState(user) {
+  /** Pindah ke data & PIN milik pemilik baru (akun lain / tamu). Mengembalikan true jika berpindah. */
+  async function ensureOwner(user) {
+    const owner = user ? user.uid : 'guest';
+    if (owner === currentOwner) return false;
+    currentOwner = owner;
+    try { localStorage.setItem(OWNER_KEY, owner); } catch (e) { /* abaikan */ }
+    await DB.useOwner(owner);
+    await DB.init();
+    sessionUnlocked = !!user; // baru saja masuk dengan akun = sudah terautentikasi
+    closeLockScreen();
+    await reloadAll();
+    renderAll();
+    updateSettingsLockUI();
+    if (user && await DB.isEmpty()) restoreFromCloudIfAny();
+    return true;
+  }
+  /** Perangkat/akun baru yang masih kosong: pulihkan cadangan cloud jika ada (diam-diam jika tidak ada). */
+  async function restoreFromCloudIfAny() {
+    try {
+      await CloudSync.pullData();
+      await reloadAll();
+      renderAll();
+      showToast('Data akunmu dipulihkan dari cloud.');
+    } catch (e) { /* belum ada cadangan */ }
+  }
+
+  async function handleAuthState(user, fallback) {
+    // 'fallback' = Firebase terlalu lama merespons: jangan pindah pemilik/membuka kunci karena tebakan.
+    if (!fallback) await ensureOwner(user);
     currentAuthUser = user;
     updateAkunUI(user);
     updateHeader();
@@ -796,6 +639,7 @@
       authResolved = true;
       tryLeaveSplash();
       if (user) afterLogin(user, false);
+      else if (isGuest() && getSecurity().enabled && !sessionUnlocked) startUnlockFlow();
       return;
     }
     if (user) {
@@ -919,7 +763,7 @@
       } else {
         await CloudSync.login(email, password);
         document.getElementById('form-auth-login').reset();
-        // Berhasil: onAuthChange -> handleAuthState memutar transisi layar hitam
+        // Berhasil: onAuthChange -> handleAuthState memutar transisi sambutan
       }
     } catch (err) {
       setAuthMsg(errorEl, err.message);
@@ -980,6 +824,7 @@
     document.getElementById('lg-guest-btn').addEventListener('click', () => {
       setGuest(true);
       enterApp(true);
+      if (getSecurity().enabled && !sessionUnlocked) startUnlockFlow();
     });
     document.getElementById('lg-toggle-pass').addEventListener('click', () => {
       const input = document.getElementById('auth-password-login');
@@ -1003,7 +848,7 @@
     if (window.CloudSync && CloudSync.isReady()) {
       CloudSync.onAuthChange(handleAuthState);
       // Jaga-jaga jika Firebase lambat merespons: jangan tahan splash selamanya
-      setTimeout(() => { if (!authResolved) handleAuthState(null); }, 3500);
+      setTimeout(() => { if (!authResolved) handleAuthState(null, true); }, 3500);
     } else {
       document.getElementById('lg-config-note').hidden = false;
       handleAuthState(null);
@@ -3238,6 +3083,9 @@
   --------------------------------------------------------- */
   async function init() {
     initTheme();
+    // Tanpa fitur akun aktif, pemiliknya pasti 'tamu'
+    if (!(window.CloudSync && CloudSync.isReady())) currentOwner = 'guest';
+    await DB.useOwner(currentOwner);
     await DB.init();
     await reloadAll();
 

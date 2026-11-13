@@ -1264,75 +1264,17 @@
   </div>
 </div>
 
-<!-- ===================== MODAL: PERTANYAAN KEAMANAN (pemulihan PIN) ===================== -->
-<div class="modal-overlay" id="modal-security-question">
-  <div class="modal-sheet">
+<!-- ===================== MODAL: LUPA PIN (Batal / Konfirmasi) ===================== -->
+<div class="modal-overlay over-lock" id="modal-forgot-pin">
+  <div class="modal-sheet forgot-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-header">
-      <h3 class="modal-title" id="sq-modal-title">Pertanyaan Keamanan</h3>
-      <button class="modal-close" data-close-modal="modal-security-question" aria-label="Tutup">&times;</button>
-    </div>
-    <form id="form-security-question" class="modal-body">
-      <p class="field-hint" id="sq-intro">Digunakan untuk memulihkan akses jika kamu lupa PIN.</p>
-
-      <label class="field" id="sq-select-wrap">
-        <span class="field-label">Pilih Pertanyaan</span>
-        <select id="sq-select">
-          <option value="Nama hewan peliharaan pertamamu?">Nama hewan peliharaan pertamamu?</option>
-          <option value="Kota tempat kamu lahir?">Kota tempat kamu lahir?</option>
-          <option value="Makanan favoritmu?">Makanan favoritmu?</option>
-          <option value="Nama sekolah dasarmu?">Nama sekolah dasarmu?</option>
-        </select>
-      </label>
-
-      <p class="field-question" id="sq-fixed-question" hidden></p>
-
-      <label class="field">
-        <span class="field-label" id="sq-answer-label">Jawaban</span>
-        <input type="text" id="sq-answer" placeholder="Ketik jawabanmu" required maxlength="40" autocomplete="off" />
-      </label>
-
+    <div class="forgot-body">
+      <h2 class="forgot-title">Lupa PIN?</h2>
+      <p class="forgot-desc" id="forgot-desc"></p>
       <div class="modal-actions">
-        <button type="submit" class="btn-primary" id="sq-submit-btn">Simpan</button>
+        <button type="button" class="btn-secondary" data-close-modal="modal-forgot-pin">Batal</button>
+        <button type="button" class="btn-danger" id="forgot-confirm-btn">Konfirmasi</button>
       </div>
-    </form>
-  </div>
-</div>
-
-<!-- ===================== MODAL: LUPA PIN (PEMULIHAN) ===================== -->
-<div class="modal-overlay over-lock" id="modal-pin-recovery">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <h3 class="modal-title">Lupa PIN</h3>
-      <button class="modal-close" data-close-modal="modal-pin-recovery" aria-label="Tutup">&times;</button>
-    </div>
-    <div class="modal-body">
-      <p class="field-hint">Buktikan bahwa ini kamu dengan salah satu cara di bawah, lalu buat PIN baru.</p>
-      <div class="menu-list rec-list">
-        <button type="button" class="menu-item" id="rec-question">
-          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg></span>
-          <span class="menu-item-text"><span class="menu-item-title">Jawab pertanyaan keamanan</span><span class="menu-item-desc">Pertanyaan yang kamu buat saat mengaktifkan PIN</span></span>
-        </button>
-        <button type="button" class="menu-item" id="rec-account">
-          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></span>
-          <span class="menu-item-text"><span class="menu-item-title">Verifikasi dengan akun</span><span class="menu-item-desc" id="rec-account-desc">Masuk ulang dengan Google atau password akunmu</span></span>
-        </button>
-        <form id="rec-pass-form" class="rec-pass" hidden>
-          <input type="password" id="rec-pass-input" placeholder="Password akunmu" autocomplete="current-password" />
-          <button type="submit" class="btn-primary" id="rec-pass-btn">Verifikasi</button>
-        </form>
-        <button type="button" class="menu-item" id="rec-email">
-          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
-          <span class="menu-item-text"><span class="menu-item-title">Kirim kode ke email</span><span class="menu-item-desc" id="rec-email-desc">Perlu akun yang sudah masuk</span></span>
-        </button>
-        <form id="rec-code-form" class="rec-pass" hidden>
-          <input type="text" id="rec-code-input" inputmode="numeric" maxlength="6" placeholder="Kode 6 digit" autocomplete="one-time-code" />
-          <button type="submit" class="btn-primary" id="rec-code-btn">Verifikasi</button>
-        </form>
-      </div>
-      <p class="rec-msg" id="rec-msg" role="status"></p>
-      <button type="button" class="rec-wipe" id="rec-wipe">Tidak ingat semuanya? Reset aplikasi</button>
     </div>
   </div>
 </div>

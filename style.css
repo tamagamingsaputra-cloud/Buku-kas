@@ -808,14 +808,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .goal-transfer-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .goal-withdraw-btn { border-color: var(--text-faint); color: var(--text-dim); background: var(--bg); }
-.field-question {
-  font-size: 14px; font-weight: 600;
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin: 0;
-}
 
 /* Tombol cepat "Menabung / Tarik" pada kartu target */
 .goal-card-actions {
@@ -1618,23 +1610,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce) { .scan-line, .scan-lens, .field.autofill { animation: none !important; } }
 
 /* ============================================================
-   LUPA PIN — pemulihan
+   LUPA PIN — dialog konfirmasi (tampil di atas layar kunci)
    ============================================================ */
-.modal-overlay.over-lock, #modal-security-question { z-index: 250; }
+.modal-overlay.over-lock { z-index: 250; }
 #modal-confirm { z-index: 260; }
-.rec-list { display: flex; flex-direction: column; gap: 8px; }
-.rec-pass { display: flex; gap: 8px; margin: -2px 0 2px; animation: viewIn .3s ease both; }
-.rec-pass[hidden] { display: none; }
-#rec-code-input { letter-spacing: 6px; text-align: center; font-size: 18px; font-weight: 700; }
-.rec-pass input { flex: 1; min-width: 0; border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); border-radius: 13px; padding: 12px 14px; font-size: 14.5px; }
-.rec-pass .btn-primary { width: auto; padding: 0 18px; border-radius: 13px; }
-.rec-msg { min-height: 18px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); margin: 0; }
-.rec-msg.err { color: var(--danger); }
-.rec-msg.ok { color: var(--success); }
-.rec-wipe { border: none; background: none; color: var(--danger); font-size: 12.5px; font-weight: 600; padding: 8px 4px; font-family: inherit; align-self: center; }
-.menu-item.is-off { opacity: .55; }
-.menu-item[hidden] { display: none; }
-.menu-item.busy .menu-item-icon { animation: lensPulse 1s ease-in-out infinite; }
+.forgot-body { padding: 8px 4px 6px; text-align: center; }
+.forgot-title { font-size: 26px; font-weight: 700; letter-spacing: -.4px; margin: 10px 0 10px; color: var(--text); }
+.forgot-desc { font-size: 14.5px; line-height: 1.6; color: var(--text-dim); margin: 0 4px 22px; }
+.forgot-body .modal-actions .btn-secondary,
+.forgot-body .modal-actions .btn-danger { flex: 1; }
 
 .scan-btn[hidden] { display: none; }
 .scan-btn.scan-in { animation: viewIn .35s cubic-bezier(.22,1,.36,1) both; }
