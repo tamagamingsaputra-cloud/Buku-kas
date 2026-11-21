@@ -1,0 +1,62 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pastikan google-services.json ada
+        run: |
+          if [ ! -f google-services.json ]; then
+            echo "::error::google-services.json belum ada di root repo. Lihat PETUNJUK-GOOGLE-LOGIN.md"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Salin Firebase SDK, font, dan OCR ke dalam aplikasi
+        run: node scripts/vendor.mjs
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Konfigurasi Android (Google login, kamera, keystore tetap)
+        run: |
+          cp google-services.json android/app/google-services.json
+          printf '\next.rgcfaIncludeGoogle = true\n' >> android/variables.gradle
+          sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA" />\n    <application#' android/app/src/main/AndroidManifest.xml
+          mkdir -p ~/.android
+          cp debug.keystore ~/.android/debug.keystore
+
+      - name: Generate launcher icons
+        run: npx capacitor-assets generate --android
+        continue-on-error: true
+
+      - name: Sync web assets
+        run: npx cap sync android
+
+      - name: Build APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BukuKas-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

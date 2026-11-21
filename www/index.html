@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+<title>Buku Kas — Manajemen Keuangan Pribadi</title>
+<meta name="theme-color" content="#46C39A" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Buku Kas" />
+<link rel="stylesheet" href="vendor/fonts/inter.css" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Gradasi bersama untuk ilustrasi dompet, uang, dan koin -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gMint" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9BE9C8"/><stop offset="1" stop-color="#46C197"/></linearGradient>
+    <linearGradient id="gMintLight" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D2F6E4"/><stop offset="1" stop-color="#93E1BF"/></linearGradient>
+    <linearGradient id="gBack" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27456F"/><stop offset="1" stop-color="#16243B"/></linearGradient>
+    <linearGradient id="gBill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3FDF8"/><stop offset="1" stop-color="#B9E8CF"/></linearGradient>
+    <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE48F"/><stop offset="1" stop-color="#E0A526"/></linearGradient>
+    <radialGradient id="gCoin" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#FFF1B8"/><stop offset=".55" stop-color="#F7C948"/><stop offset="1" stop-color="#D9951A"/></radialGradient>
+  <symbol id="sym-coin" viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="url(#gCoin)" stroke="#B9801A" stroke-width="1.6"/><circle cx="14" cy="14" r="10.6" fill="none" stroke="#FFF1B8" stroke-width="1.2" stroke-dasharray="1.3 1.7" opacity=".85"/><circle cx="14" cy="14" r="8" fill="none" stroke="#C98A16" stroke-width="1.1"/><text x="14.6" y="19.1" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="12" fill="#fff" opacity=".55">$</text><text x="14" y="18.5" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="12" fill="#8A5F0A">$</text><path d="M7.4 9.6a8 8 0 0 1 5-3.1" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/></symbol>
+  </defs>
+</svg>
+
+
+<!-- ===================== SPLASH (2 detik) ===================== -->
+<div id="splash-overlay" class="splash-overlay" aria-hidden="true">
+  <div class="splash-stage">
+    <div class="splash-art">
+      <span class="splash-ring r1"></span><span class="splash-ring r2"></span><span class="splash-ring r3"></span>
+      <svg class="splash-wallet" viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="#16243B" stroke-width="3" stroke-linecap="round">
+          <path class="sp-spark s1" d="M26 60l10 10M36 60L26 70"/>
+          <path class="sp-spark s2" stroke="#3FBF93" d="M222 36l10 10M232 36l-10 10"/>
+          <circle class="sp-spark s3" cx="48" cy="132" r="4" stroke="#3FBF93"/>
+          <circle class="sp-spark s4" cx="246" cy="92" r="4"/>
+          <circle class="sp-spark s5" cx="196" cy="18" r="3.5"/>
+        </g>
+        <g class="sp-body">
+          <ellipse cx="125" cy="211" rx="92" ry="6.5" fill="#16243B" opacity=".12"/>
+          <rect x="40" y="92" width="190" height="114" rx="18" fill="url(#gBack)" stroke="#16243B" stroke-width="5"/>
+          <g class="sp-bill sp-bill-a">
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g>
+          <g class="sp-bill sp-bill-b">
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g>
+          <g class="sp-bill sp-bill-c">
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g>
+          <rect x="30" y="100" width="190" height="104" rx="18" fill="url(#gMint)" stroke="#16243B" stroke-width="5"/>
+          <rect x="41" y="107" width="168" height="9" rx="4.5" fill="#fff" opacity=".34"/>
+          <path d="M46 128H196" stroke="#16243B" stroke-width="2.4" stroke-dasharray="7 6" stroke-linecap="round" opacity=".5"/>
+          <rect x="186" y="136" width="56" height="42" rx="12" fill="url(#gMintLight)" stroke="#16243B" stroke-width="5"/>
+          <circle cx="212" cy="157" r="9.5" fill="url(#gGold)" stroke="#16243B" stroke-width="4"/>
+          <circle cx="208.8" cy="153.8" r="2.6" fill="#fff" opacity=".85"/>
+        </g>
+      </svg>
+    </div>
+    <div class="splash-text">
+      <h1 class="splash-title">Buku Kas</h1>
+      <p class="splash-sub">Kelola Uang Lebih Baik</p>
+      <p class="splash-desc">Catat pemasukan dan pengeluaran, atur anggaran, dan capai target tabunganmu &mdash; semua dalam satu aplikasi yang tetap bisa dipakai offline.</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- ===================== LAYAR KUNCI PIN ===================== -->
+<div class="lock-overlay" id="lock-screen">
+  <div class="lock-content">
+    <div class="lock-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h2 class="lock-title" id="lock-title">Masukkan PIN</h2>
+    <p class="lock-subtitle" id="lock-subtitle">Masukkan PIN untuk membuka Buku Kas</p>
+    <div class="pin-dots" id="pin-dots"></div>
+    <p class="lock-error" id="lock-error"></p>
+    <div class="keypad" id="keypad">
+      <button type="button" class="key" data-key="1">1</button>
+      <button type="button" class="key" data-key="2">2</button>
+      <button type="button" class="key" data-key="3">3</button>
+      <button type="button" class="key" data-key="4">4</button>
+      <button type="button" class="key" data-key="5">5</button>
+      <button type="button" class="key" data-key="6">6</button>
+      <button type="button" class="key" data-key="7">7</button>
+      <button type="button" class="key" data-key="8">8</button>
+      <button type="button" class="key" data-key="9">9</button>
+      <span class="key key-spacer"></span>
+      <button type="button" class="key" data-key="0">0</button>
+      <button type="button" class="key key-back" data-key="back" aria-label="Hapus">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M18 9l-6 6M12 9l6 6"/></svg>
+      </button>
+    </div>
+    <button type="button" class="lock-forgot" id="lock-forgot-btn">Lupa PIN?</button>
+    <button type="button" class="lock-cancel" id="lock-cancel-btn" hidden>Batal</button>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="app-header">
+    <div class="hdr-left">
+      <button class="hdr-user" id="hdr-user" type="button" aria-label="Buka akun">
+        <span class="hdr-hello" id="hdr-hello">Selamat datang</span>
+        <span class="hdr-name" id="hdr-name">Buku Kas</span>
+      </button>
+      <button class="hdr-ws" id="hdr-ws" type="button" aria-haspopup="dialog" aria-label="Ganti ruang kerja">
+        <span class="hdr-ws-dot"></span><span id="hdr-ws-name">Pribadi</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+    <div class="hdr-actions">
+      <button class="hdr-bell" id="btn-hdr-search" type="button" aria-label="Cari transaksi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>
+      </button>
+      <button class="hdr-bell" id="btn-bell" type="button" aria-label="Pengingat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path class="bell-body" d="M6 9a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9Z"/><path class="bell-clapper" d="M10 19a2 2 0 0 0 4 0"/></svg>
+        <span class="hdr-badge" id="bell-badge" hidden>0</span>
+      </button>
+      <button class="hdr-daftar" id="btn-hdr-daftar" type="button">Daftar</button>
+      <button class="hdr-avatar" id="btn-hdr-avatar" type="button" aria-label="Akun saya" hidden>A</button>
+    </div>
+  </header>
+
+  <!-- ===================== MAIN VIEWS ===================== -->
+  <!-- ===================== LOGIN (halaman pertama) ===================== -->
+<div id="login-screen" class="login-screen hidden">
+  <div class="lg-ambient" id="lg-ambient" aria-hidden="true"></div>
+  <div class="lg-scroll">
+    <div class="lg-wrap">
+      <div class="lg-hero">
+        <div class="lg-drop" id="lg-drop" aria-hidden="true"></div>
+        <svg class="lg-wallet" viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="125" cy="211" rx="92" ry="6.5" fill="#16243B" opacity=".12"/>
+          <rect x="40" y="92" width="190" height="114" rx="18" fill="url(#gBack)" stroke="#16243B" stroke-width="5"/>
+          <g transform="translate(-8 -26) rotate(-8 130 110)"><g class="lg-bill b1">
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g></g>
+          <g transform="translate(14 -40) rotate(7 130 110)"><g class="lg-bill b2">
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g></g>
+          <g transform="translate(36 -30) rotate(20 130 110)"><g class="lg-bill b3">
+          <rect x="82" y="52" width="96" height="58" rx="8" fill="url(#gBill)" stroke="#16243B" stroke-width="4"/>
+          <rect x="89" y="59" width="82" height="44" rx="4.5" fill="none" stroke="#3FBF93" stroke-width="1.6" opacity=".75"/>
+          <path d="M97 81h13M150 81h13" stroke="#3FBF93" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="130" cy="81" r="15.5" fill="url(#gMint)" stroke="#16243B" stroke-width="3.4"/>
+          <text x="130" y="87.2" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="17" fill="#16243B">$</text>
+          <circle cx="97" cy="67" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          <circle cx="163" cy="95" r="2.6" fill="none" stroke="#16243B" stroke-width="1.6"/>
+          </g></g>
+          <rect x="30" y="100" width="190" height="104" rx="18" fill="url(#gMint)" stroke="#16243B" stroke-width="5"/>
+          <rect x="41" y="107" width="168" height="9" rx="4.5" fill="#fff" opacity=".34"/>
+          <path d="M46 128H196" stroke="#16243B" stroke-width="2.4" stroke-dasharray="7 6" stroke-linecap="round" opacity=".5"/>
+          <rect x="186" y="136" width="56" height="42" rx="12" fill="url(#gMintLight)" stroke="#16243B" stroke-width="5"/>
+          <circle cx="212" cy="157" r="9.5" fill="url(#gGold)" stroke="#16243B" stroke-width="4"/>
+          <circle cx="208.8" cy="153.8" r="2.6" fill="#fff" opacity=".85"/>
+        </svg>
+        <h1 class="lg-title">Buku Kas</h1>
+        <p class="lg-tag">Kelola Uang Lebih Baik</p>
+      </div>
+
+      <div class="lg-card">
+
+        <div class="lg-seg" id="auth-mode-segmented-login">
+          <button type="button" class="segment active" data-auth-mode="login">Masuk</button>
+          <button type="button" class="segment" data-auth-mode="register">Daftar</button>
+        </div>
+
+        <form id="form-auth-login" class="lg-form">
+          <label class="lg-field" id="auth-username-wrap-login" hidden>
+            <span class="lg-label">Username</span>
+            <span class="lg-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+              <input type="text" id="auth-username-login" placeholder="Nama pengguna" maxlength="24" autocomplete="username" />
+            </span>
+          </label>
+          <label class="lg-field">
+            <span class="lg-label">Email</span>
+            <span class="lg-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>
+              <input type="email" id="auth-email-login" placeholder="nama@email.com" required autocomplete="email" />
+            </span>
+          </label>
+          <label class="lg-field">
+            <span class="lg-label">Password</span>
+            <span class="lg-input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+              <input type="password" id="auth-password-login" placeholder="Password" required autocomplete="current-password" />
+              <button type="button" class="lg-eye" id="lg-toggle-pass" aria-label="Tampilkan password">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </span>
+            <span class="lg-hint" id="auth-pw-hint-login" hidden>Minimal 8 karakter, kombinasi huruf dan angka.</span>
+          </label>
+          <p class="auth-error" id="auth-error-login" role="alert"></p>
+          <button type="submit" class="lg-btn" id="auth-submit-btn-login"><span class="lg-btn-label">Masuk</span></button>
+        </form>
+
+        <div class="lg-divider"><span>atau</span></div>
+        <button type="button" class="lg-google" id="btn-google-signin-login"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.92l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.29v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29v-3.1H1.29A12 12 0 0 0 0 12c0 1.93.46 3.76 1.29 5.39z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.78l3.44-3.44C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.29 6.61l4 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg>Lanjutkan dengan Google</button>
+        <button type="button" class="lg-guest" id="lg-guest-btn">Lanjutkan tanpa akun</button>
+      </div>
+
+      <p class="lg-foot" id="lg-config-note" hidden>Login cloud belum dikonfigurasi di versi ini. Kamu tetap bisa memakai Buku Kas tanpa akun.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Transisi setelah login: koin jatuh ke dompet, lalu masuk ke dashboard -->
+<div id="login-welcome" class="login-welcome" aria-hidden="true">
+  <div class="lw-coin">
+    <svg viewBox="0 0 28 28"><use href="#sym-coin"/></svg>
+    <span class="lw-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+  </div>
+  <p class="lw-hello" id="lw-hello">Selamat datang</p>
+  <p class="lw-sub">Menyiapkan buku kasmu…</p>
+  <div class="lw-line"><i></i></div>
+</div>
+
+  <main class="app-main" id="app-main">
+
+    <!-- ---------- DASHBOARD ---------- -->
+    <section class="view" id="view-dashboard" data-view="dashboard">
+
+      <!-- Insight ringkas -->
+      <div class="insight-banner" id="dash-insight-banner">
+        <span class="insight-banner-icon" id="dash-insight-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+        </span>
+        <span class="insight-banner-text" id="dash-insight-text">Belum ada transaksi bulan ini.</span>
+      </div>
+
+      <div class="balance-card">
+        <div class="balance-top">
+          <div class="balance-label">Total Saldo</div>
+          <button class="balance-eye" id="btn-hide-balance" type="button" aria-pressed="false" aria-label="Sembunyikan saldo">
+            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-shut" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 6.2A9.8 9.8 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-3.2 3.9M6.1 7.8A17 17 0 0 0 2 12s3.6 6 10 6a9.7 9.7 0 0 0 4-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+          </button>
+        </div>
+        <div class="balance-amount" id="dash-balance">Rp0</div>
+        <div class="seg-mini" id="dash-period" role="group" aria-label="Periode ringkasan">
+          <button type="button" class="segment" data-dperiod="day">Hari ini</button>
+          <button type="button" class="segment" data-dperiod="week">Minggu ini</button>
+          <button type="button" class="segment active" data-dperiod="month">Bulan ini</button>
+        </div>
+        <div class="balance-flow">
+          <div class="flow-item">
+            <span class="flow-ic flow-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></span>
+            <span class="flow-text"><span class="flow-label">Pemasukan</span><span class="flow-value" id="dash-income">Rp0</span></span>
+          </div>
+          <div class="flow-item">
+            <span class="flow-ic flow-out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span>
+            <span class="flow-text"><span class="flow-label">Pengeluaran</span><span class="flow-value" id="dash-expense">Rp0</span></span>
+          </div>
+        </div>
+        <div class="balance-compare" id="dash-compare"></div>
+      </div>
+
+      <!-- Aksi cepat -->
+      <div class="qa-head"><h2 class="qa-title">Aksi cepat</h2></div>
+      <div class="qa-grid" id="qa-grid">
+        <button type="button" class="qa" data-qa="tambah"><span class="qa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="qa-lb">Tambah</span></button>
+        <button type="button" class="qa" data-qa="suara"><span class="qa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><span class="qa-lb">Suara</span></button>
+        <button type="button" class="qa" data-qa="scan"><span class="qa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></span><span class="qa-lb">Scan</span></button>
+        <button type="button" class="qa" data-qa="transfer"><span class="qa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg></span><span class="qa-lb">Transfer</span></button>
+        <button type="button" class="qa" data-qa="tabung"><span class="qa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6.5c-1.4 0-2.6 1-3 2-3.4-1.3-10-.2-10 4.7 0 1.7.3 2.8 2 4V21h4v-2h3v2h4v-3.8c.9-.5 1.6-1.1 2-2.2h2v-4h-2c-.2-.9-.6-1.5-1-2V6.5Z"/></svg></span><span class="qa-lb">Tabungan</span></button>
+        <button type="button" class="qa" data-qa="utang"><span class="qa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 8h5M19.5 5.5v5"/></svg></span><span class="qa-lb">Utang</span></button>
+        <button type="button" class="qa" data-qa="dompet"><span class="qa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M16 13h5M6 6l9-2.5V6"/></svg></span><span class="qa-lb">Dompet</span></button>
+        <button type="button" class="qa" data-qa="modul"><span class="qa-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg></span><span class="qa-lb">Modul</span></button>
+      </div>
+
+      <div id="dash-extra"></div>
+
+      <!-- Pengingat hutang (muncul hanya jika ada) -->
+      <div class="remind-card" id="dash-remind-card" hidden>
+        <div class="remind-head">
+          <span class="remind-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Pengingat
+          </span>
+          <button class="link-btn" id="btn-remind-all" type="button">Lihat semua</button>
+        </div>
+        <ul class="remind-list" id="dash-remind-list"></ul>
+      </div>
+
+      <!-- Pintasan -->
+      <div class="quick-grid">
+        <button class="quick-card" type="button" data-nav="target" data-fx="coin">
+          <span class="qc-icon qc-saving">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle class="qc-coin" cx="11" cy="3.6" r="1.9"/>
+              <path d="M19 6.5c-1.4 0-2.6 1-3 2-3.4-1.3-10-.2-10 4.7 0 1.7.3 2.8 2 4V21h4v-2h3v2h4v-3.8c.9-.5 1.6-1.1 2-2.2h2v-4h-2c-.2-.9-.6-1.5-1-2V6.5Z"/>
+              <circle cx="16" cy="12" r=".7" fill="currentColor" stroke="none"/>
+            </svg>
+          </span>
+          <span class="qc-label">Tabungan</span>
+          <span class="qc-value" id="dash-saving">Rp0</span>
+          <span class="qc-desc">Pantau target &amp; setoran</span>
+        </button>
+        <button class="quick-card" type="button" data-nav="hutang" data-fx="swap">
+          <span class="qc-icon qc-debt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path class="qc-arrow-a" d="M4 8h13M13 4l4 4-4 4"/>
+              <path class="qc-arrow-b" d="M20 16H7M11 12l-4 4 4 4"/>
+            </svg>
+          </span>
+          <span class="qc-label">Hutang &amp; Piutang</span>
+          <span class="qc-value" id="dash-debt-owe">Rp0</span>
+          <span class="qc-desc" id="dash-debt-sub">Belum ada catatan</span>
+        </button>
+      </div>
+
+      <div class="budget-wide">
+        <div class="bw-top">
+          <span class="bw-label">Anggaran terpakai</span>
+          <span class="bw-pct" id="dash-budget-pct">0%</span>
+        </div>
+        <div class="dash-stat-bar-track"><div class="dash-stat-bar-fill" id="dash-budget-bar"></div></div>
+        <span class="dash-stat-sub" id="dash-budget-sub">Rp0 dari Rp0</span>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Tren Pengeluaran</h2>
+          <span class="card-subtitle" id="dash-trend-month"></span>
+        </div>
+        <div class="trend-chart-wrap">
+          <canvas id="dash-trend-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Pengeluaran per Kategori</h2>
+          <span class="card-subtitle" id="dash-chart-month"></span>
+        </div>
+        <div id="dash-chart-wrap" class="chart-wrap">
+          <canvas id="dash-chart" width="220" height="220"></canvas>
+          <div class="chart-legend" id="dash-chart-legend"></div>
+        </div>
+        <div class="empty-state" id="dash-chart-empty">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20V10M18 20V4M6 20v-6"/></svg>
+          </div>
+          <p class="empty-title">Belum ada pengeluaran bulan ini</p>
+          <p class="empty-desc">Catat transaksi pertamamu untuk mulai melihat ringkasan.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Anggaran Overview</h2>
+          <button class="link-btn" data-nav="anggaran">Atur</button>
+        </div>
+        <div id="dash-budget-list"></div>
+        <div class="empty-state" id="dash-budget-empty">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M8 16h5"/></svg>
+          </div>
+          <p class="empty-title">Belum ada anggaran diatur</p>
+          <p class="empty-desc">Atur batas bulanan per kategori supaya pengeluaran lebih terkontrol.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Transaksi Terbaru</h2>
+          <button class="link-btn" data-nav="transaksi">Lihat semua</button>
+        </div>
+        <ul class="tx-list" id="dash-recent-list"></ul>
+        <div class="empty-state" id="dash-recent-empty">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h3"/></svg>
+          </div>
+          <p class="empty-title">Belum ada transaksi</p>
+          <p class="empty-desc">Ketuk tombol + untuk mencatat transaksi pertamamu.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- TRANSAKSI ---------- -->
+    <section class="view" id="view-transaksi" data-view="transaksi">
+      <div class="view-header-row">
+        <h2 class="view-title">Transaksi</h2>
+        <div class="tx-search-row">
+          <label class="tx-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg>
+            <input type="search" id="tx-search" placeholder="Cari catatan, kategori, dompet" maxlength="60" autocomplete="off" aria-label="Cari transaksi" /></label>
+          <button type="button" class="tx-filter-btn" id="btn-tx-filter" aria-label="Filter lanjutan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg><i id="tx-filter-dot" hidden></i></button>
+        </div>
+        <div class="chip-filter" id="tx-filter">
+          <button class="chip active" data-filter="all">Semua</button>
+          <button class="chip" data-filter="income">Pemasukan</button>
+          <button class="chip" data-filter="expense">Pengeluaran</button>
+          <button class="chip" data-filter="transfer">Transfer</button>
+        </div>
+      </div>
+      <div id="tx-groups"></div>
+      <div class="empty-state" id="tx-empty">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h3"/></svg>
+        </div>
+        <p class="empty-title">Belum ada transaksi</p>
+        <p class="empty-desc">Semua transaksi yang kamu catat akan muncul di sini.</p>
+      </div>
+    </section>
+
+    <!-- ---------- DOMPET ---------- -->
+    <section class="view" id="view-dompet" data-view="dompet">
+      <div class="view-header-row">
+        <h2 class="view-title">Dompet</h2>
+        <button class="btn-outline-sm" id="btn-add-wallet">+ Dompet</button>
+      </div>
+      <div class="wallet-grid" id="wallet-list"></div>
+      <div class="empty-state" id="wallet-empty">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M16 15h2"/></svg>
+        </div>
+        <p class="empty-title">Belum ada dompet</p>
+        <p class="empty-desc">Tambahkan dompet seperti Tunai, Bank, atau E-Wallet.</p>
+      </div>
+    </section>
+
+    <!-- ---------- TABUNGAN ---------- -->
+    <section class="view" id="view-target" data-view="target">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="dashboard" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 class="view-title">Tabungan Saya</h2>
+      </div>
+
+      <div class="saving-total-card">
+        <div class="saving-total-label">Total Tabungan Saat Ini</div>
+        <div class="saving-total-amount" id="saving-total-amount">Rp0</div>
+        <button class="btn-primary saving-setor-btn" id="btn-saving-setor-dana">+ Setor Dana</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Recap Tabungan (Hari ke Hari)</h2></div>
+        <ul class="tx-list" id="saving-recap-list"></ul>
+        <div class="empty-state" id="saving-recap-empty">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h3"/></svg>
+          </div>
+          <p class="empty-title">Belum ada riwayat tabungan</p>
+          <p class="empty-desc">Setor dana ke salah satu target untuk mulai menabung.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Statistik Tabungan</h2></div>
+        <div class="saving-stat-chart-wrap">
+          <canvas id="saving-stat-chart"></canvas>
+        </div>
+        <div class="trend-legend">
+          <span class="legend-row"><span class="legend-dot" style="background:var(--success)"></span>Setoran</span>
+          <span class="legend-row"><span class="legend-dot" style="background:var(--danger)"></span>Penarikan</span>
+          <span class="legend-row"><span class="legend-dot" style="background:var(--gold)"></span>Total Saldo</span>
+        </div>
+        <div class="saving-month-stats">
+          <div>
+            <span class="field-label">Total Setoran Bulan Ini</span>
+            <div class="saving-month-stat-value income" id="saving-month-in">Rp0</div>
+          </div>
+          <div>
+            <span class="field-label">Total Penarikan Bulan Ini</span>
+            <div class="saving-month-stat-value expense" id="saving-month-out">Rp0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="view-header-row">
+        <h2 class="view-title" style="font-size:16px;">Target Tabungan (Goals)</h2>
+        <button class="btn-outline-sm" id="btn-add-goal">+ Target</button>
+      </div>
+      <div class="goal-list" id="goal-list"></div>
+      <div class="empty-state" id="goal-empty">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 21 12 17l-5.5 4L8 13.5 3 9l6.5-.5z"/></svg>
+        </div>
+        <p class="empty-title">Belum ada target tabungan</p>
+        <p class="empty-desc">Buat target untuk memotivasi kebiasaan menabungmu.</p>
+      </div>
+    </section>
+
+    <!-- ---------- HUTANG & PIUTANG ---------- -->
+    <section class="view" id="view-hutang" data-view="hutang">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="dashboard" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 class="view-title">Hutang &amp; Piutang</h2>
+        <button class="btn-outline-sm" id="btn-debt-add" type="button">+ Catat</button>
+      </div>
+
+      <div class="debt-summary">
+        <div class="ds-card ds-owe">
+          <span class="ds-label">Hutang Saya</span>
+          <span class="ds-value" id="ds-owe">Rp0</span>
+          <span class="ds-sub" id="ds-owe-sub">0 catatan</span>
+        </div>
+        <div class="ds-card ds-lent">
+          <span class="ds-label">Piutang</span>
+          <span class="ds-value" id="ds-lent">Rp0</span>
+          <span class="ds-sub" id="ds-lent-sub">0 catatan</span>
+        </div>
+      </div>
+
+      <div class="segmented" id="debt-filter">
+        <button type="button" class="segment active" data-debt-filter="all">Semua</button>
+        <button type="button" class="segment" data-debt-filter="owe">Hutang Saya</button>
+        <button type="button" class="segment" data-debt-filter="lent">Piutang</button>
+      </div>
+
+      <ul class="debt-list" id="debt-list"></ul>
+      <div class="empty-state" id="debt-empty">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13M13 4l4 4-4 4M20 16H7M11 12l-4 4 4 4"/></svg>
+        </div>
+        <p>Belum ada catatan hutang atau piutang.</p>
+        <p class="empty-sub">Ketuk "+ Catat" untuk menambahkan.</p>
+      </div>
+    </section>
+
+    <!-- ---------- LAINNYA (menu) ---------- -->
+    <section class="view" id="view-lainnya" data-view="lainnya">
+      <h2 class="view-title">Lainnya</h2>
+      <div class="menu-list">
+        <button class="menu-item" data-nav="akun">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Akun</span>
+            <span class="menu-item-desc" id="akun-menu-desc">Masuk untuk menyimpan data ke cloud</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="hutang">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13M13 4l4 4-4 4M20 16H7M11 12l-4 4 4 4"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Hutang &amp; Piutang</span>
+            <span class="menu-item-desc">Catat hutangmu dan uang yang dipinjam orang</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="tagihan">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Tagihan &amp; Langganan</span>
+            <span class="menu-item-desc">Listrik, internet, cicilan, dan tagihan rutin</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="aset">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Aset &amp; Kekayaan Bersih</span>
+            <span class="menu-item-desc">Emas, kendaraan, properti, dan total kekayaan</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="kalender">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Kalender Keuangan</span>
+            <span class="menu-item-desc">Jatuh tempo, tagihan, dan transaksi per tanggal</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="ekspor">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Ekspor Laporan</span>
+            <span class="menu-item-desc">Unduh CSV, Excel, atau PDF</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="riwayat">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Riwayat Aktivitas</span>
+            <span class="menu-item-desc">Jejak perubahan transaksi dan data</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="impor">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9M7 14l5-5 5 5M5 3h14"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Impor Mutasi</span>
+            <span class="menu-item-desc">Masukkan transaksi dari CSV atau Excel bank</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="usaha">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Usaha &amp; Stok</span>
+            <span class="menu-item-desc">Penjualan, stok barang, biaya, dan laba usaha</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="kelompok">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c3 0 6 1.8 6 5.5"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Kas Kelompok</span>
+            <span class="menu-item-desc">Iuran, arisan, dan patungan (dicatat bendahara)</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="anggaran">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M8 16h5"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Anggaran</span>
+            <span class="menu-item-desc">Atur batas pengeluaran bulanan per kategori</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="kategori">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.59 13.41L11 3.83V3H3v8h.83L13.41 20.6a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.83z"/><circle cx="6.5" cy="6.5" r="1"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Kategori</span>
+            <span class="menu-item-desc">Kelola kategori pemasukan &amp; pengeluaran</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="analisa">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Analisa</span>
+            <span class="menu-item-desc">Ringkasan &amp; insight keuangan bulan ini</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+        <button class="menu-item" data-nav="pengaturan">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Pengaturan</span>
+            <span class="menu-item-desc">Tema, cadangan data, dan reset</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ---------- TAGIHAN ---------- -->
+    <section class="view" id="view-tagihan" data-view="tagihan">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Tagihan</h2>
+        <button class="btn-outline-sm" id="btn-bill-add" type="button">+ Tagihan</button>
+      </div>
+      <div class="card bk-summary" id="bill-summary"></div>
+      <div class="bk-list" id="bill-list"></div>
+      <div class="empty-state" id="bill-empty" style="display:none"><p class="empty-desc">Belum ada tagihan. Tambahkan listrik, internet, kos, atau cicilan agar tidak lupa.</p></div>
+    </section>
+
+    <!-- ---------- ASET ---------- -->
+    <section class="view" id="view-aset" data-view="aset">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Aset &amp; Kekayaan</h2>
+        <button class="btn-outline-sm" id="btn-asset-add" type="button">+ Aset</button>
+      </div>
+      <div class="card bk-summary" id="networth-card"></div>
+      <div class="bk-list" id="asset-list"></div>
+      <div class="empty-state" id="asset-empty" style="display:none"><p class="empty-desc">Belum ada aset. Catat emas, kendaraan, properti, atau investasi untuk menghitung kekayaan bersih.</p></div>
+    </section>
+
+    <!-- ---------- KALENDER ---------- -->
+    <section class="view" id="view-kalender" data-view="kalender">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Kalender</h2>
+      </div>
+      <div class="card">
+        <div class="cal-head">
+          <button type="button" class="btn-outline-sm" id="cal-prev" aria-label="Bulan sebelumnya">&lsaquo;</button>
+          <b id="cal-title"></b>
+          <button type="button" class="btn-outline-sm" id="cal-next" aria-label="Bulan berikutnya">&rsaquo;</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-legend"><span><i class="dot dot-bill"></i>Tagihan</span><span><i class="dot dot-debt"></i>Utang/Piutang</span><span><i class="dot dot-tx"></i>Transaksi</span></div>
+      </div>
+      <div class="card"><div class="card-header"><span class="card-title" id="cal-day-title"></span></div><div id="cal-day-list" class="bk-list"></div></div>
+    </section>
+
+    <!-- ---------- EKSPOR ---------- -->
+    <section class="view" id="view-ekspor" data-view="ekspor">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Ekspor Laporan</h2>
+      </div>
+      <div class="card">
+        <label class="field">
+          <span class="field-label">Periode</span>
+          <select id="ex-period">
+            <option value="month">Bulan ini</option>
+            <option value="lastmonth">Bulan lalu</option>
+            <option value="year">Tahun ini</option>
+            <option value="all">Semua data</option>
+            <option value="custom">Pilih tanggal…</option>
+          </select>
+        </label>
+        <div id="ex-custom" hidden>
+          <label class="field"><span class="field-label">Dari</span><input type="date" id="ex-from" /></label>
+          <label class="field"><span class="field-label">Sampai</span><input type="date" id="ex-to" /></label>
+        </div>
+        <p class="field-hint" id="ex-info"></p>
+        <div class="ex-buttons">
+          <button type="button" class="btn-primary" id="ex-csv">CSV</button>
+          <button type="button" class="btn-primary" id="ex-xlsx">Excel</button>
+          <button type="button" class="btn-primary" id="ex-pdf">PDF</button>
+        </div>
+        <p class="field-hint">CSV berisi daftar transaksi. Excel dan PDF juga memuat ringkasan, saldo dompet, dan utang-piutang.</p>
+      </div>
+    </section>
+
+    <!-- ---------- RIWAYAT ---------- -->
+    <section class="view" id="view-riwayat" data-view="riwayat">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Riwayat Aktivitas</h2>
+      </div>
+      <p class="field-hint">100 perubahan terakhir pada transaksi, tabungan, utang, tagihan, dan aset.</p>
+      <div class="bk-list" id="audit-list"></div>
+      <div class="empty-state" id="audit-empty" style="display:none"><p class="empty-desc">Belum ada aktivitas tercatat.</p></div>
+    </section>
+
+    <!-- ---------- IMPOR ---------- -->
+    <section class="view" id="view-impor" data-view="impor">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Impor Mutasi</h2>
+      </div>
+      <div class="card">
+        <p class="field-hint">Pilih file CSV atau Excel (.xlsx) mutasi rekening. Kolom dikenali otomatis dan bisa kamu ubah. Transaksi yang sudah pernah diimpor atau mirip dengan catatan manual dilewati.</p>
+        <label class="field"><span class="field-label">Masuk ke dompet</span><select id="im-wallet"></select></label>
+        <input type="file" id="im-file" accept=".csv,.txt,.xlsx,.xls,text/csv" />
+      </div>
+      <div class="card" id="im-map" hidden>
+        <div class="card-header"><span class="card-title">Pemetaan kolom</span></div>
+        <label class="field"><span class="field-label">Tanggal</span><select id="im-col-date"></select></label>
+        <label class="field"><span class="field-label">Keterangan</span><select id="im-col-desc"></select></label>
+        <label class="field"><span class="field-label">Nominal (+masuk / −keluar)</span><select id="im-col-amount"></select></label>
+        <label class="field"><span class="field-label">Atau kolom Debit (keluar)</span><select id="im-col-debit"></select></label>
+        <label class="field"><span class="field-label">Atau kolom Kredit (masuk)</span><select id="im-col-credit"></select></label>
+        <label class="field"><span class="field-label">Kolom DB/CR (opsional)</span><select id="im-col-dc"></select></label>
+        <label class="im-check"><input type="checkbox" id="im-skip-similar" checked /> Lewati yang mirip catatan manual</label>
+      </div>
+      <div class="card" id="im-preview" hidden>
+        <div class="card-header"><span class="card-title">Pratinjau</span><span class="card-subtitle" id="im-summary"></span></div>
+        <div class="bk-list" id="im-rows"></div>
+        <button type="button" class="btn-primary" id="im-go">Impor</button>
+      </div>
+    </section>
+
+    <!-- ---------- USAHA ---------- -->
+    <section class="view" id="view-usaha" data-view="usaha">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Usaha &amp; Stok</h2>
+      </div>
+      <div class="filter-chips" id="biz-tabs">
+        <button class="chip active" data-biz-tab="ringkasan">Ringkasan</button>
+        <button class="chip" data-biz-tab="stok">Stok</button>
+        <button class="chip" data-biz-tab="jual">Penjualan</button>
+        <button class="chip" data-biz-tab="biaya">Biaya</button>
+      </div>
+      <div id="biz-root"></div>
+    </section>
+
+    <!-- ---------- KELOMPOK ---------- -->
+    <section class="view" id="view-kelompok" data-view="kelompok">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Kas Kelompok</h2>
+        <button class="btn-outline-sm" id="btn-grp-add" type="button">+ Kelompok</button>
+      </div>
+      <div id="grp-root"></div>
+    </section>
+
+    <!-- ---------- AKUN ---------- -->
+    <section class="view" id="view-akun" data-view="akun">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="profil" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 class="view-title">Akun</h2>
+      </div>
+
+      <!-- Belum login -->
+      <div class="card" id="akun-auth-card">
+        <p class="settings-row-title">Kamu belum masuk</p>
+        <p class="settings-row-desc" style="margin-top:4px;">Daftar atau masuk supaya datamu tersimpan di cloud dan tetap aman walau ganti HP.</p>
+        <button type="button" class="btn-primary" id="btn-akun-open-auth" style="margin-top:14px;">Daftar / Masuk</button>
+      </div>
+
+      <!-- Sudah login -->
+      <div class="card" id="akun-profile-card" hidden>
+        <div class="akun-profile-row">
+          <span class="akun-avatar" id="akun-avatar">?</span>
+          <div class="akun-profile-info">
+            <div class="akun-profile-name" id="akun-profile-name">—</div>
+            <div class="akun-profile-email" id="akun-profile-email">—</div>
+          </div>
+        </div>
+        <div class="settings-actions" style="margin-top:16px;">
+          <button class="btn-secondary" id="btn-edit-username">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            Ubah Username
+          </button>
+          <button class="btn-secondary" id="btn-sync-push">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+            Sinkronkan ke Cloud
+          </button>
+          <button class="btn-secondary" id="btn-sync-pull">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9M17 14l-5-5-5 5M4 3h16"/></svg>
+            Pulihkan dari Cloud
+          </button>
+        </div>
+        <p class="field-hint" id="akun-sync-status" style="margin-top:10px;"></p>
+        <button class="btn-danger-ghost" id="btn-akun-logout" style="width:100%;margin-top:6px;">Keluar</button>
+      </div>
+
+      <!-- Kunci PIN -->
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Kunci PIN</h2></div>
+        <p class="settings-row-desc">PIN dapat diubah, dinonaktifkan, maupun diaktifkan kembali kapan saja di pengaturan ini.</p>
+        <button class="btn-secondary" id="btn-open-pin-config" style="margin-top:14px;">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Konfigurasi PIN
+        </button>
+      </div>
+    </section>
+
+    <!-- ---------- ANGGARAN ---------- -->
+    <section class="view" id="view-anggaran" data-view="anggaran">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 class="view-title">Anggaran</h2>
+      </div>
+      <p class="field-hint" style="margin:-8px 0 14px;">Atur batas pengeluaran bulanan per kategori. Ketuk kategori untuk mengatur atau mengubah batasnya.</p>
+      <ul class="cat-list" id="budget-cat-list"></ul>
+    </section>
+
+    <!-- ---------- KATEGORI ---------- -->
+    <section class="view" id="view-kategori" data-view="kategori">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 class="view-title">Kategori</h2>
+        <button class="btn-outline-sm" id="btn-add-category">+ Kategori</button>
+      </div>
+      <div class="segmented" id="cat-segmented">
+        <button class="segment active" data-cat-type="expense">Pengeluaran</button>
+        <button class="segment" data-cat-type="income">Pemasukan</button>
+      </div>
+      <ul class="cat-list" id="cat-list"></ul>
+    </section>
+
+    <!-- ---------- ANALISA ---------- -->
+    <section class="view" id="view-analisa" data-view="analisa">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="lainnya" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 class="view-title">Analisa Sederhana</h2>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-box">
+          <span class="stat-box-label">Pemasukan</span>
+          <span class="stat-box-value income" id="an-income">Rp0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-box-label">Pengeluaran</span>
+          <span class="stat-box-value expense" id="an-expense">Rp0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-box-label">Selisih</span>
+          <span class="stat-box-value" id="an-selisih">Rp0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-box-label">Tabungan dari Pemasukan</span>
+          <span class="stat-box-value" id="an-savings-pct">0%</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Kategori Pengeluaran Terbesar</h2></div>
+        <div id="an-top-category" class="top-category"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Insight</h2></div>
+        <ul class="insight-list" id="an-insights"></ul>
+      </div>
+    </section>
+
+    <!-- ---------- PENGATURAN ---------- -->
+    <section class="view" id="view-pengaturan" data-view="pengaturan">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="profil" aria-label="Kembali">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h2 class="view-title">Pengaturan</h2>
+      </div>
+
+      <div class="card">
+        <div class="settings-row-title">Mode Tampilan</div>
+        <div class="settings-row-desc" style="margin-bottom:10px">Terang, gelap, atau ikuti pengaturan perangkat</div>
+        <div class="theme-seg" role="group" aria-label="Mode tampilan">
+          <button type="button" class="segment" data-theme-set="light">Terang</button>
+          <button type="button" class="segment" data-theme-set="dark">Gelap</button>
+          <button type="button" class="segment" data-theme-set="system">Sistem</button>
+        </div>
+      </div>
+
+      <div class="card" id="card-notif">
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-title">Notifikasi Pengingat</div>
+            <div class="settings-row-desc" id="notif-desc">Ingatkan jatuh tempo hutang &amp; piutang saat aplikasi dibuka</div>
+          </div>
+          <button class="switch" id="settings-notif-switch" role="switch" aria-checked="false">
+            <span class="switch-knob"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="menu-item" data-nav="akun" style="border:none;padding:0;background:none;">
+          <span class="menu-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+          <span class="menu-item-text">
+            <span class="menu-item-title">Akun &amp; Kunci PIN</span>
+            <span class="menu-item-desc">Login cloud dan pengaturan PIN ada di sini</span>
+          </span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h2 class="card-title">Cadangan Data</h2></div>
+        <div class="settings-actions">
+          <button class="btn-secondary" id="btn-export">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>
+            Export Backup JSON
+          </button>
+          <button class="btn-secondary" id="btn-import">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9M17 14l-5-5-5 5M4 3h16"/></svg>
+            Import Backup JSON
+          </button>
+          <input type="file" id="import-file-input" accept="application/json" hidden />
+        </div>
+      </div>
+
+      <div class="card card-danger">
+        <div class="card-header"><h2 class="card-title">Zona Berbahaya</h2></div>
+        <p class="settings-row-desc">Menghapus seluruh dompet, transaksi, kategori, dan target tabungan secara permanen.</p>
+        <button class="btn-danger" id="btn-reset">Reset Semua Data</button>
+      </div>
+    </section>
+
+    <!-- ---------- PROFIL ---------- -->
+    <section class="view" id="view-profil" data-view="profil">
+      <div id="profil-root"></div>
+    </section>
+
+    <!-- ---------- PUSAT NOTIFIKASI ---------- -->
+    <section class="view" id="view-notifikasi" data-view="notifikasi">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="dashboard" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Notifikasi</h2>
+        <button class="btn-outline-sm" id="btn-notif-readall" type="button">Tandai semua dibaca</button>
+      </div>
+      <div class="chip-filter" id="notif-filter"></div>
+      <div id="notif-root"></div>
+    </section>
+
+    <!-- ---------- BANTUAN ---------- -->
+    <section class="view" id="view-bantuan" data-view="bantuan">
+      <div class="view-header-row">
+        <button class="back-btn" data-nav="profil" aria-label="Kembali"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h2 class="view-title">Bantuan</h2>
+      </div>
+      <div id="bantuan-root"></div>
+    </section>
+
+  </main>
+
+  <!-- ===================== BOTTOM NAV ===================== -->
+  <nav class="bottom-nav" aria-label="Navigasi utama">
+    <button class="nav-item active" data-nav="dashboard" data-fx="tiles">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path class="tint" d="M3.5 11 12 4l8.5 7v8.5a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1Z"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-nav="transaksi" data-fx="swap">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <path class="a1" d="M4 8h14M14 4l4 4-4 4"/>
+        <path class="a2" d="M20 16H6M10 12l-4 4 4 4"/>
+      </svg>
+      <span>Transaksi</span>
+    </button>
+    <button class="nav-fab" id="btn-open-add-tx" data-fx="plus" aria-label="Tambah">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path class="plus" d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="nav-item" data-nav="analisa" data-fx="tiles">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16"/><path class="tint" d="M8 15l3.5-4 3 2.5L20 7"/></svg>
+      <span>Analisis</span>
+    </button>
+    <button class="nav-item" data-nav="profil" data-fx="dots">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle class="tint" cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg>
+      <span>Profil</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ===================== MODAL: TAMBAH / EDIT TRANSAKSI ===================== -->
+<div class="modal-overlay" id="modal-tx">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="tx-modal-title">Tambah Transaksi</h3>
+      <button class="modal-close" data-close-modal="modal-tx" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-tx" class="modal-body">
+      <input type="hidden" id="tx-id" />
+      <button type="button" class="scan-btn" id="btn-scan-receipt">
+        <span class="scan-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><circle class="scan-lens" cx="12" cy="12" r="3.2"/></svg>
+        </span>
+        <span class="scan-text"><b>Foto Struk</b><small>Isi otomatis dari kamera atau galeri</small></span>
+      </button>
+      <input type="file" id="receipt-input" accept="image/*" hidden />
+      <div class="scan-preview" id="scan-preview" hidden>
+        <img id="scan-img" alt="Struk" />
+        <span class="scan-line"></span>
+        <span class="scan-done" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+        <div class="scan-info">
+          <span id="scan-status">Membaca struk…</span>
+          <div class="scan-bar"><i id="scan-bar-fill"></i></div>
+        </div>
+      </div>
+      <div class="segmented" id="tx-type-segmented">
+        <button type="button" class="segment active" data-tx-type="expense">Pengeluaran</button>
+        <button type="button" class="segment" data-tx-type="income">Pemasukan</button>
+        <button type="button" class="segment" data-tx-type="transfer">Transfer</button>
+      </div>
+
+      <label class="field">
+        <span class="field-label">Nominal</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="tx-amount" placeholder="0" required />
+        </div>
+      </label>
+
+      <label class="field" id="tx-category-field">
+        <span class="field-label">Kategori</span>
+        <select id="tx-category" required></select>
+        <span class="field-hint" id="tx-cat-hint" hidden></span>
+      </label>
+
+      <label class="field">
+        <span class="field-label" id="tx-wallet-label">Dompet</span>
+        <select id="tx-wallet" required></select>
+      </label>
+
+      <label class="field" id="tx-to-wallet-field" hidden>
+        <span class="field-label">Ke Dompet</span>
+        <select id="tx-to-wallet"></select>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Tanggal</span>
+        <input type="date" id="tx-date" required />
+      </label>
+
+      <label class="field">
+        <span class="field-label">Catatan (opsional)</span>
+        <textarea id="tx-note" rows="2" placeholder="Contoh: Makan siang bersama tim"></textarea>
+      </label>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="tx-delete-btn" hidden>Hapus</button>
+        <button type="submit" class="btn-primary">Simpan Transaksi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: TAMBAH / EDIT DOMPET ===================== -->
+<div class="modal-overlay" id="modal-wallet">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="wallet-modal-title">Tambah Dompet</h3>
+      <button class="modal-close" data-close-modal="modal-wallet" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-wallet" class="modal-body">
+      <input type="hidden" id="wallet-id" />
+      <label class="field">
+        <span class="field-label">Nama Dompet</span>
+        <input type="text" id="wallet-name" placeholder="Contoh: Tunai, BCA, GoPay" required maxlength="30" />
+      </label>
+      <label class="field">
+        <span class="field-label">Saldo Awal</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="wallet-initial" placeholder="0" />
+        </div>
+        <span class="field-hint" id="wallet-initial-hint">Saldo awal dicatat sekali saat dompet dibuat.</span>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="wallet-delete-btn" hidden>Hapus</button>
+        <button type="submit" class="btn-primary">Simpan Dompet</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: TAMBAH / EDIT KATEGORI ===================== -->
+<div class="modal-overlay" id="modal-category">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="category-modal-title">Tambah Kategori</h3>
+      <button class="modal-close" data-close-modal="modal-category" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-category" class="modal-body">
+      <input type="hidden" id="category-id" />
+      <label class="field">
+        <span class="field-label">Nama Kategori</span>
+        <input type="text" id="category-name" placeholder="Contoh: Langganan" required maxlength="24" />
+      </label>
+      <label class="field">
+        <span class="field-label">Tipe</span>
+        <div class="segmented" id="category-type-segmented">
+          <button type="button" class="segment active" data-cat-form-type="expense">Pengeluaran</button>
+          <button type="button" class="segment" data-cat-form-type="income">Pemasukan</button>
+        </div>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="category-delete-btn" hidden>Hapus</button>
+        <button type="submit" class="btn-primary">Simpan Kategori</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: ATUR ANGGARAN KATEGORI ===================== -->
+<div class="modal-overlay" id="modal-budget">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="budget-modal-title">Atur Anggaran</h3>
+      <button class="modal-close" data-close-modal="modal-budget" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-budget" class="modal-body">
+      <input type="hidden" id="budget-category-id" />
+      <input type="hidden" id="budget-id" />
+      <label class="field">
+        <span class="field-label">Batas Bulanan</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="budget-amount" placeholder="0" required />
+        </div>
+        <span class="field-hint">Kosongkan ke 0 untuk menghapus anggaran kategori ini.</span>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="budget-delete-btn" hidden>Hapus</button>
+        <button type="submit" class="btn-primary">Simpan Anggaran</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: TAMBAH / EDIT TARGET ===================== -->
+<div class="modal-overlay" id="modal-goal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="goal-modal-title">Tambah Target</h3>
+      <button class="modal-close" data-close-modal="modal-goal" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-goal" class="modal-body">
+      <input type="hidden" id="goal-id" />
+      <label class="field">
+        <span class="field-label">Nama Target</span>
+        <input type="text" id="goal-name" placeholder="Contoh: Dana Darurat" required maxlength="30" />
+      </label>
+      <label class="field">
+        <span class="field-label">Nominal Target</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="goal-target" placeholder="0" required />
+        </div>
+      </label>
+      <label class="field" id="goal-current-field-wrap">
+        <span class="field-label">Nominal Terkumpul Awal</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="goal-current" placeholder="0" />
+        </div>
+        <span class="field-hint">Isi jika sebelumnya kamu sudah punya tabungan untuk target ini.</span>
+      </label>
+
+      <div class="goal-progress-summary" id="goal-progress-summary" hidden>
+        <div>
+          <span class="field-label">Terkumpul Saat Ini</span>
+          <div class="goal-summary-amount" id="goal-summary-amount">Rp0</div>
+        </div>
+        <div class="goal-transfer-actions">
+          <button type="button" class="btn-outline-sm goal-deposit-btn" id="btn-goal-deposit">+ Setor</button>
+          <button type="button" class="btn-outline-sm goal-withdraw-btn" id="btn-goal-withdraw">- Tarik</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="goal-delete-btn" hidden>Hapus</button>
+        <button type="submit" class="btn-primary">Simpan Target</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: SETOR / TARIK TABUNGAN ===================== -->
+<div class="modal-overlay" id="modal-goal-transfer">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="gt-modal-title">Setor Tabungan</h3>
+      <button class="modal-close" data-close-modal="modal-goal-transfer" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-goal-transfer" class="modal-body">
+      <input type="hidden" id="gt-goal-id" />
+      <input type="hidden" id="gt-mode" value="deposit" />
+      <p class="field-hint" id="gt-desc">Dana akan dipindahkan dari dompet ke target tabungan ini.</p>
+      <label class="field" id="gt-goal-select-wrap" hidden>
+        <span class="field-label">Target Tabungan</span>
+        <select id="gt-goal-select"></select>
+      </label>
+      <label class="field">
+        <span class="field-label">Nominal</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="gt-amount" placeholder="0" required />
+        </div>
+      </label>
+      <label class="field" id="gt-source-wrap">
+        <span class="field-label">Sumber Dana</span>
+        <select id="gt-source"></select>
+        <span class="field-hint">Dari mana uang yang kamu tabung ini — gaji, bonus, atau lainnya.</span>
+      </label>
+      <label class="field">
+        <span class="field-label" id="gt-wallet-label">Dari Dompet</span>
+        <select id="gt-wallet" required></select>
+      </label>
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary" id="gt-submit-btn">Setor Sekarang</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: DAFTAR / MASUK ===================== -->
+<div class="modal-overlay" id="modal-auth">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="auth-modal-title">Daftar atau Masuk</h3>
+      <button class="modal-close" data-close-modal="modal-auth" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="auth-step-choose">
+        <p class="field-hint" style="margin-bottom:14px;">Simpan datamu di cloud agar tetap ada walau ganti HP.</p>
+        <button type="button" class="btn-google" id="btn-sheet-google"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.63h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.92l-3.88-3c-1.08.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.29v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29A7.2 7.2 0 0 1 4.91 12c0-.8.14-1.57.38-2.29v-3.1H1.29A12 12 0 0 0 0 12c0 1.93.46 3.76 1.29 5.39z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.58 1.78l3.44-3.44C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.29 6.61l4 3.1C6.23 6.88 8.88 4.77 12 4.77z"/></svg>Lanjutkan dengan Google</button>
+        <button type="button" class="btn-secondary" id="btn-sheet-email" style="margin-top:10px;">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          Lanjutkan dengan Email
+        </button>
+        <p class="auth-error" id="auth-error-choose"></p>
+      </div>
+      <form id="auth-step-email" hidden>
+        <div class="segmented" id="sheet-auth-seg">
+          <button type="button" class="segment active" data-sheet-mode="login">Masuk</button>
+          <button type="button" class="segment" data-sheet-mode="register">Daftar</button>
+        </div>
+        <label class="field" id="sheet-username-wrap" hidden>
+          <span class="field-label">Username</span>
+          <input type="text" id="sheet-username" placeholder="Nama panggilanmu" maxlength="24" autocomplete="nickname" />
+        </label>
+        <label class="field">
+          <span class="field-label">Email</span>
+          <input type="email" id="sheet-email" placeholder="nama@email.com" required autocomplete="email" />
+        </label>
+        <label class="field">
+          <span class="field-label">Password</span>
+          <input type="password" id="sheet-password" placeholder="Password" required autocomplete="current-password" />
+          <span class="field-hint" id="sheet-pw-hint" hidden>Minimal 8 karakter, kombinasi huruf dan angka.</span>
+        </label>
+        <p class="auth-error" id="sheet-auth-error"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btn-sheet-back">Kembali</button>
+          <button type="submit" class="btn-primary" id="sheet-submit">Masuk</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: USERNAME ===================== -->
+<div class="modal-overlay" id="modal-username">
+  <div class="modal-sheet modal-sheet-sm">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Silakan isi username</h3>
+    </div>
+    <form id="form-username" class="modal-body">
+      <p class="field-hint">Nama ini akan ditampilkan di dashboard.</p>
+      <label class="field">
+        <span class="field-label">Username</span>
+        <input type="text" id="username-input" placeholder="Contoh: Tama" maxlength="24" required autocomplete="nickname" />
+        <span class="field-hint" id="username-error" style="color:var(--danger)"></span>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btn-username-skip">Lewati</button>
+        <button type="submit" class="btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: HUTANG ===================== -->
+<div class="modal-overlay" id="modal-debt">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="debt-modal-title">Catat Hutang</h3>
+      <button class="modal-close" data-close-modal="modal-debt" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-debt" class="modal-body">
+      <input type="hidden" id="debt-id" />
+      <div class="segmented" id="debt-type-seg">
+        <button type="button" class="segment active" data-debt-type="owe">Hutang Saya</button>
+        <button type="button" class="segment" data-debt-type="lent">Piutang</button>
+      </div>
+      <p class="field-hint" id="debt-type-hint">Uang yang kamu pinjam dari orang lain.</p>
+      <label class="field">
+        <span class="field-label" id="debt-person-label">Dipinjam dari</span>
+        <input type="text" id="debt-person" placeholder="Nama orang" required maxlength="40" />
+      </label>
+      <label class="field">
+        <span class="field-label">Nominal</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="debt-amount" placeholder="0" required />
+        </div>
+      </label>
+      <label class="field" id="debt-wallet-field">
+        <span class="field-label">Catat ke dompet</span>
+        <select id="debt-wallet"></select>
+        <span class="field-hint">Pilih dompet bila uangnya benar-benar masuk/keluar dari dompet.</span>
+      </label>
+      <label class="field">
+        <span class="field-label">Jatuh Tempo (opsional)</span>
+        <input type="date" id="debt-due" />
+      </label>
+      <label class="field">
+        <span class="field-label">Ingatkan</span>
+        <select id="debt-remind">
+          <option value="0">Pada hari jatuh tempo</option>
+          <option value="1">1 hari sebelumnya</option>
+          <option value="3">3 hari sebelumnya</option>
+          <option value="7">7 hari sebelumnya</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="field-label">Catatan (opsional)</span>
+        <input type="text" id="debt-note" placeholder="Untuk apa?" maxlength="80" />
+      </label>
+      <div class="debt-history" id="debt-history" hidden>
+        <span class="field-label">Riwayat Pembayaran</span>
+        <ul class="debt-pay-list" id="debt-pay-list"></ul>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="debt-delete-btn" hidden>Hapus</button>
+        <button type="submit" class="btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: TAGIHAN ===================== -->
+<div class="modal-overlay" id="modal-bill">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="bill-modal-title">Tambah Tagihan</h3>
+      <button class="modal-close" data-close-modal="modal-bill" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-bill" class="modal-body">
+      <input type="hidden" id="bill-id" />
+      <label class="field"><span class="field-label">Nama tagihan</span><input type="text" id="bill-name" placeholder="Contoh: Listrik" maxlength="40" required /></label>
+      <label class="field"><span class="field-label">Nominal</span>
+        <div class="amount-input"><span class="amount-prefix">Rp</span><input type="text" inputmode="numeric" id="bill-amount" placeholder="0" required /></div></label>
+      <label class="field"><span class="field-label">Kategori</span><select id="bill-category"></select></label>
+      <label class="field"><span class="field-label">Dibayar dari dompet</span><select id="bill-wallet"></select></label>
+      <label class="field"><span class="field-label">Berulang</span>
+        <select id="bill-repeat"><option value="monthly">Tiap bulan</option><option value="weekly">Tiap minggu</option><option value="yearly">Tiap tahun</option><option value="once">Sekali saja</option></select></label>
+      <label class="field"><span class="field-label">Jatuh tempo berikutnya</span><input type="date" id="bill-due" required /></label>
+      <label class="field"><span class="field-label">Catatan (opsional)</span><input type="text" id="bill-note" maxlength="80" /></label>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="bill-delete-btn" hidden>Hapus</button>
+        <button type="submit" class="btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: ASET ===================== -->
+<div class="modal-overlay" id="modal-asset">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="asset-modal-title">Tambah Aset</h3>
+      <button class="modal-close" data-close-modal="modal-asset" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-asset" class="modal-body">
+      <input type="hidden" id="asset-id" />
+      <label class="field"><span class="field-label">Nama aset</span><input type="text" id="asset-name" placeholder="Contoh: Emas 10 gram" maxlength="40" required /></label>
+      <label class="field"><span class="field-label">Jenis</span>
+        <select id="asset-kind"><option value="emas">Emas</option><option value="kendaraan">Kendaraan</option><option value="properti">Properti</option><option value="barang">Barang berharga</option><option value="investasi">Investasi</option><option value="lainnya">Lainnya</option></select></label>
+      <label class="field"><span class="field-label">Perkiraan nilai saat ini</span>
+        <div class="amount-input"><span class="amount-prefix">Rp</span><input type="text" inputmode="numeric" id="asset-value" placeholder="0" required /></div></label>
+      <label class="field"><span class="field-label">Catatan (opsional)</span><input type="text" id="asset-note" maxlength="80" /></label>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="asset-delete-btn" hidden>Hapus</button>
+        <button type="submit" class="btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: CATAT CEPAT ===================== -->
+<div class="modal-overlay" id="modal-quick">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Catat Cepat</h3>
+      <button class="modal-close" data-close-modal="modal-quick" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-quick" class="modal-body">
+      <p class="field-hint">Ketik atau ucapkan, misalnya: "beli makan dua puluh ribu", "terima gaji 3 juta", "bayar listrik 200rb", "pinjamkan Andi lima puluh ribu", "tabung seratus ribu".</p>
+      <label class="field"><span class="field-label">Ucapan / ketikan</span>
+        <textarea id="quick-text" rows="2" placeholder="beli makan 20 ribu" maxlength="200"></textarea></label>
+      <button type="button" class="btn-outline-sm" id="quick-mic">Ucapkan</button>
+      <div class="quick-preview" id="quick-preview" hidden></div>
+      <div class="modal-actions"><button type="submit" class="btn-primary" id="quick-go">Lanjut</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: FORM DINAMIS ===================== -->
+<div class="modal-overlay" id="modal-dyn">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="dyn-title"></h3>
+      <button class="modal-close" data-close-modal="modal-dyn" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-dyn" class="modal-body">
+      <div id="dyn-body"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger-ghost" id="dyn-danger" hidden></button>
+        <button type="submit" class="btn-primary" id="dyn-submit">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: PENJUALAN ===================== -->
+<div class="modal-overlay" id="modal-sale">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Catat Penjualan</h3>
+      <button class="modal-close" data-close-modal="modal-sale" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-sale" class="modal-body">
+      <div id="sale-lines"></div>
+      <button type="button" class="btn-outline-sm" id="sale-add-line">+ Tambah barang</button>
+      <label class="field"><span class="field-label">Diskon</span><div class="amount-input"><span class="amount-prefix">Rp</span><input type="text" inputmode="numeric" id="sale-discount" placeholder="0" /></div></label>
+      <label class="field"><span class="field-label">Pajak % (opsional)</span><input type="text" inputmode="decimal" id="sale-tax" placeholder="0" /></label>
+      <label class="field"><span class="field-label">Pembayaran</span>
+        <select id="sale-method"><option value="cash">Tunai / lunas</option><option value="partial">Bayar sebagian</option><option value="credit">Belum bayar (piutang)</option></select></label>
+      <label class="field" id="sale-paid-field" hidden><span class="field-label">Dibayar sekarang</span><div class="amount-input"><span class="amount-prefix">Rp</span><input type="text" inputmode="numeric" id="sale-paid" placeholder="0" /></div></label>
+      <label class="field"><span class="field-label">Pelanggan (wajib bila ada piutang)</span><input type="text" id="sale-customer" maxlength="40" /></label>
+      <label class="field"><span class="field-label">Masuk ke dompet</span><select id="sale-wallet"></select></label>
+      <label class="field"><span class="field-label">Tanggal</span><input type="date" id="sale-date" required /></label>
+      <label class="field"><span class="field-label">Catatan (opsional)</span><input type="text" id="sale-note" maxlength="80" /></label>
+      <div class="quick-preview" id="sale-total"></div>
+      <div class="modal-actions"><button type="submit" class="btn-primary">Simpan Penjualan</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: BAYAR / TERIMA ===================== -->
+<div class="modal-overlay" id="modal-debt-pay">
+  <div class="modal-sheet modal-sheet-sm">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title" id="dp-title">Catat Pembayaran</h3>
+      <button class="modal-close" data-close-modal="modal-debt-pay" aria-label="Tutup">&times;</button>
+    </div>
+    <form id="form-debt-pay" class="modal-body">
+      <input type="hidden" id="dp-debt-id" />
+      <p class="field-hint" id="dp-info"></p>
+      <label class="field">
+        <span class="field-label">Nominal</span>
+        <div class="amount-input">
+          <span class="amount-prefix">Rp</span>
+          <input type="text" inputmode="numeric" id="dp-amount" placeholder="0" required />
+        </div>
+        <button type="button" class="link-btn" id="dp-full" style="margin-top:6px;align-self:flex-start;">Lunasi semua</button>
+      </label>
+      <label class="field">
+        <span class="field-label">Dompet</span>
+        <select id="dp-wallet"></select>
+      </label>
+      <label class="field">
+        <span class="field-label">Tanggal</span>
+        <input type="date" id="dp-date" required />
+      </label>
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary" id="dp-submit">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== MODAL: PENGINGAT ===================== -->
+<div class="modal-overlay" id="modal-reminders">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Pengingat</h3>
+      <button class="modal-close" data-close-modal="modal-reminders" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body">
+      <ul class="remind-list" id="reminder-sheet-list"></ul>
+      <div class="empty-state" id="reminder-sheet-empty">
+        <p>Tidak ada pengingat saat ini.</p>
+        <p class="empty-sub">Tambahkan jatuh tempo pada catatan hutang untuk mendapat pengingat.</p>
+      </div>
+      <button type="button" class="btn-secondary" id="btn-open-hutang" style="margin-top:12px;">Buka Hutang &amp; Piutang</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== LEMBAR: TAMBAH ===================== -->
+<div class="modal-overlay" id="modal-add-sheet">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Tambah</h3>
+      <button class="modal-close" data-close-modal="modal-add-sheet" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body"><div class="add-grid" id="add-grid"></div></div>
+  </div>
+</div>
+
+<!-- ===================== LEMBAR: RUANG KERJA ===================== -->
+<div class="modal-overlay" id="modal-workspace">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Ruang kerja</h3>
+      <button class="modal-close" data-close-modal="modal-workspace" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body"><div id="ws-list"></div>
+      <p class="field-hint">Data tiap ruang kerja dipisah: transaksi usaha tidak masuk laporan pribadi, dan kas kelompok punya saldo sendiri.</p></div>
+  </div>
+</div>
+
+<!-- ===================== KONFIRMASI GENERIK ===================== -->
+<!-- ===================== MODAL: KONFIGURASI PIN ===================== -->
+<div class="modal-overlay" id="modal-pin-config">
+  <div class="modal-sheet modal-sheet-sm">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h3 class="modal-title">Konfigurasi PIN</h3>
+      <button class="modal-close" data-close-modal="modal-pin-config" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-title">Kunci Aplikasi (PIN)</div>
+          <div class="settings-row-desc">Wajib masukkan PIN 6 digit setiap kali membuka aplikasi</div>
+        </div>
+        <button class="switch" id="settings-lock-switch" role="switch" aria-checked="false">
+          <span class="switch-knob"></span>
+        </button>
+      </div>
+      <div class="settings-actions" id="lock-manage-actions" hidden style="margin-top:14px;">
+        <button class="btn-secondary" id="btn-change-pin">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Ubah PIN
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal-sheet modal-sheet-sm">
+    <div class="modal-handle"></div>
+    <div class="modal-body">
+      <p class="confirm-text" id="confirm-text">Yakin ingin melanjutkan?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="confirm-cancel">Batal</button>
+        <button type="button" class="btn-danger" id="confirm-ok">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: LUPA PIN (Batal / Konfirmasi) ===================== -->
+<div class="modal-overlay over-lock" id="modal-forgot-pin">
+  <div class="modal-sheet forgot-sheet">
+    <div class="modal-handle"></div>
+    <div class="forgot-body">
+      <h2 class="forgot-title">Lupa PIN?</h2>
+      <p class="forgot-desc" id="forgot-desc"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" data-close-modal="modal-forgot-pin">Batal</button>
+        <button type="button" class="btn-danger" id="forgot-confirm-btn">Konfirmasi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase (opsional — untuk fitur Akun & Sinkronisasi Cloud). Lihat README-FIREBASE.md -->
+<script src="vendor/firebase/firebase-app-compat.js"></script>
+<script src="vendor/firebase/firebase-auth-compat.js"></script>
+<script src="vendor/firebase/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script src="database.js"></script>
+<script src="cloud-sync.js"></script>
+<script src="receipt.js"></script>
+<script src="script.js"></script>
+<script src="features.js"></script>
+<script src="smart.js"></script>
+<script src="biz.js"></script>
+<script src="group.js"></script>
+<script src="shell.js"></script>
+</body>
+</html>

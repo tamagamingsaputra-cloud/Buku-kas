@@ -1,0 +1,12 @@
+{
+  "appId": "com.bukukas.app",
+  "appName": "Buku Kas",
+  "webDir": "www",
+  "backgroundColor": "#F7FDFA",
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": ["google.com"]
+    }
+  }
+}
