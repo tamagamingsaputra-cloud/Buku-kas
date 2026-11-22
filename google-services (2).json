@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "743371714827",
+    "project_id": "buku-kas-7d577",
+    "storage_bucket": "buku-kas-7d577.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:743371714827:android:ebf5308e3c4fb25992b20e",
+        "android_client_info": {
+          "package_name": "com.bukukass.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "743371714827-rsp8v69e2t55eil669p21ot2kglt68uo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bukukass.app",
+            "certificate_hash": "62d9fbcf38c75a70c8529f2ae12f358a8505491d"
+          }
+        },
+        {
+          "client_id": "743371714827-os6f9p4hnneqm8d5rd1vpqosdog99niq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXSyagyWYEm6Lg2-RScnaOnDTbYVMzMLI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "743371714827-os6f9p4hnneqm8d5rd1vpqosdog99niq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
