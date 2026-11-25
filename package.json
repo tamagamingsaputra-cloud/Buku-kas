@@ -4,7 +4,7 @@
   "private": true,
   "description": "Buku Kas - manajemen keuangan pribadi (APK via Capacitor)",
   "dependencies": {
-    "@aparajita/capacitor-biometric-auth": "^9.1.2",
+    "@aparajita/capacitor-biometric-auth": "8.0.2",
     "@capacitor-community/speech-recognition": "6.0.1",
     "@capacitor-firebase/authentication": "6.3.1",
     "@capacitor/android": "^6.2.0",
