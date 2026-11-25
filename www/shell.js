@@ -56,6 +56,10 @@
     BK.openTxDraft({ type: 'expense' });
     if ($('modal-tx').classList.contains('open')) BK.openReceiptPicker();
   }
+  function startProof() {
+    BK.openTxDraft({ type: 'expense', note: 'Transfer ' });
+    if ($('modal-tx').classList.contains('open')) BK.openReceiptPicker();
+  }
   const ACTIONS = {
     income: { label: 'Pemasukan', hint: 'Gaji, bonus, hasil usaha', icon: I.in, tone: 'in', run: () => BK.openTxDraft({ type: 'income' }) },
     expense: { label: 'Pengeluaran', hint: 'Belanja, tagihan, makan', icon: I.out, tone: 'out', run: () => BK.openTxDraft({ type: 'expense' }) },
@@ -64,10 +68,11 @@
     owe: { label: 'Utang', hint: 'Uang yang kamu pinjam', icon: I.owe, tone: 'warn', run: () => startDebt('owe') },
     lent: { label: 'Piutang', hint: 'Uang yang kamu pinjamkan', icon: I.lent, tone: 'info', run: () => startDebt('lent') },
     scan: { label: 'Pindai struk', hint: 'Foto struk belanja', icon: I.scan, tone: 'neutral', run: startScan },
+    proof: { label: 'Bukti transfer', hint: 'Foto bukti transfer / e-wallet', icon: I.scan, tone: 'neutral', run: startProof },
     voice: { label: 'Input suara', hint: 'Ucapkan atau ketik', icon: I.mic, tone: 'neutral', run: () => BK.openQuick && BK.openQuick() },
     manual: { label: 'Input manual', hint: 'Isi formulir lengkap', icon: I.pen, tone: 'neutral', run: () => BK.openTxModal(null) }
   };
-  const ADD_ORDER = ['income', 'expense', 'transfer', 'save', 'owe', 'lent', 'scan', 'voice', 'manual'];
+  const ADD_ORDER = ['income', 'expense', 'transfer', 'save', 'owe', 'lent', 'scan', 'proof', 'voice', 'manual'];
   function openAddSheet() {
     $('add-grid').innerHTML = ADD_ORDER.map((k) => {
       const a = ACTIONS[k];

@@ -385,8 +385,8 @@
     save: async function (name, mime, blob) {
       try {
         if (NATIVE) {
-          const FS = window.Capacitor.registerPlugin('Filesystem');
-          const Share = window.Capacitor.registerPlugin('Share');
+          const FS = window.BKNative.plugin('Filesystem');
+          const Share = window.BKNative.plugin('Share');
           const data = await blobToBase64(blob);
           const w = await FS.writeFile({ path: name, data, directory: 'CACHE', recursive: true });
           await Share.share({ title: name, dialogTitle: 'Simpan / bagikan ' + name, url: w.uri });

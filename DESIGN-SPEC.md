@@ -78,3 +78,6 @@ Satu kolom, lebar uji 400px; kontrol tetap terbaca di 320px (grid Tambah jadi 1 
 | Dokumen design system, sitemap, flow, handoff | ✔ (dokumen ini; bukan file Figma/prototipe terpisah) |
 
 Kebijakan privasi & syarat di Bantuan adalah ringkasan teknis, **bukan** teks hukum resmi; ganti sebelum rilis publik.
+
+## Putaran #3
+Prinsip: lokal (IndexedDB) = sumber kebenaran. Online hanya tambahan: login Google, cadangan/sinkron, Kasbot AI, Keluarga. Kasbot punya fallback offline penuh. Biometrik hanya kemudahan; PIN tetap rahasia utama.

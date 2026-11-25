@@ -41,3 +41,24 @@
 - Pusat Notifikasi (tagihan, utang, anggaran, stok), Profil, Bantuan/FAQ, pengantar 5 halaman.
 - Tema Terang/Gelap/Sistem; palet emerald-navy sesuai fungsi.
 - Dokumen: DESIGN-SPEC.md.
+
+## Putaran APK #2 (24 Nov 2026)
+Perbaikan bug dari APK terpasang:
+- **Login Google / suara / bagikan file** — penyebab: inti Capacitor (`window.Capacitor.registerPlugin`) tidak ikut dimuat. Sekarang `vendor/capacitor.js` dimuat dulu dan semua plugin lewat `BKNative.plugin()` (native.js).
+- **Ikon Capacitor saat buka aplikasi** — splash bawaan Android dipolos (warna hijau muda, tanpa ikon) lewat `scripts/patch-android.mjs`; ikon launcher kini wajib berhasil dibuat (tidak lagi `continue-on-error`).
+- **Animasi dompet tidak jalan di pembukaan pertama** — skrip kini `defer` (splash tergambar duluan) dan timeline animasi baru mulai setelah frame pertama.
+- **Lag** — skrip `defer`, FCP ±0,3 dtk pada CPU 6× lebih lambat; widget hanya berdetak saat Beranda terlihat.
+- **"Ubah PIN" muncul padahal belum ada PIN** — atribut `hidden` kalah oleh CSS; kini `[hidden]` selalu menang, ada tombol **Buat PIN**.
+- **Notifikasi** — mesin baru (`engage.js`) memakai `@capacitor/local-notifications`: masuk ke bilah notifikasi HP, channel berwarna (streak/tagihan/utang), getar+lampu, teks gaul, terjadwal 7 hari ke depan, banner beranimasi saat app terbuka, tombol "Kirim notifikasi contoh".
+- **Kamera** — `@capacitor/camera`; Pindai struk menampilkan pilihan Kamera / Galeri.
+Fitur baru: widget Beranda (8 jenis, bergilir/tetap, interval diatur), streak menabung (hari dipilih, pengingat 16–20, rekor, level), layar Izin aplikasi, detail & arsip dompet, duplikat transaksi, pindai bukti transfer, banner offline, skeleton widget.
+
+## Putaran APK #3 (25 Nov 2026) — online/offline + fitur tersisa
+- Biometrik (sidik jari/wajah) untuk buka kunci; PIN 6 digit tetap cadangan.
+- Impor PDF mutasi bank (pdf.js dibundel, berjalan offline); PDF hasil scan belum didukung.
+- Kasbot: asisten keuangan. Offline = aturan lokal; online = Cloud Function Firebase (kunci di server, perlu persetujuan pengguna di Pengaturan).
+- Keluarga: catatan bersama via kode undangan (Firestore, tetap bisa dicatat offline lalu sinkron).
+- Cloud sync: persistence offline Firestore, chip status sinkron, cadangan otomatis (maks tiap 5 menit).
+- Peta "Online & offline" di Pengaturan. Banner offline.
+- Backend: functions/, firestore.rules, workflow Deploy Backend, PETUNJUK-BACKEND.md.
+- Belum teruji di perangkat nyata: biometrik, notifikasi, kamera, build APK, rules/fungsi di server asli.

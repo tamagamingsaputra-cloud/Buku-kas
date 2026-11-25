@@ -1,0 +1,41 @@
+name: Deploy Backend (asisten AI + aturan Firestore)
+
+# Dijalankan MANUAL dari tab Actions. Wajib: paket Firebase Blaze, dan 2 secret repo:
+#   FIREBASE_SERVICE_ACCOUNT  = isi file JSON service account (Editor + Secret Manager Admin)
+#   ANTHROPIC_API_KEY         = kunci API Anthropic kamu
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cek secret
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          [ -n "$SA" ] || { echo "::error::Secret FIREBASE_SERVICE_ACCOUNT belum diisi"; exit 1; }
+          [ -n "$KEY" ] || { echo "::error::Secret ANTHROPIC_API_KEY belum diisi"; exit 1; }
+
+      - name: Pasang Firebase CLI & dependensi fungsi
+        run: |
+          npm install -g firebase-tools@13
+          npm --prefix functions install --omit=dev
+
+      - name: Deploy
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          PROJECT=$(node -e "console.log(require('$RUNNER_TEMP/sa.json').project_id)")
+          echo "Project: $PROJECT"
+          printf '%s' "$KEY" | firebase functions:secrets:set ANTHROPIC_API_KEY --data-file=- --project "$PROJECT" --force
+          firebase deploy --only functions,firestore:rules --project "$PROJECT" --force

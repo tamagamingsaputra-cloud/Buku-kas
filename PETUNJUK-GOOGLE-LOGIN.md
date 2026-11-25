@@ -3,7 +3,7 @@
 APK ini memakai login Google native. Kamu perlu 2 hal dari Firebase (sekali saja):
 
 1. Buka https://console.firebase.google.com -> project **buku-kas-7d577** -> Project settings -> **Add app -> Android**.
-   - Package name: `com.bukukas.app`
+   - Package name: `com.bukukass.app`
    - SHA-1: `62:D9:FB:CF:38:C7:5A:70:C8:52:9F:2A:E1:2F:35:8A:85:05:49:1D`
      (milik file `debug.keystore` di repo ini, dipakai tetap tiap build)
 2. Unduh **google-services.json**, taruh di ROOT repo (sejajar dengan package.json).

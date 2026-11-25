@@ -40,13 +40,14 @@ jobs:
         run: |
           cp google-services.json android/app/google-services.json
           printf '\next.rgcfaIncludeGoogle = true\n' >> android/variables.gradle
-          sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA" />\n    <application#' android/app/src/main/AndroidManifest.xml
           mkdir -p ~/.android
           cp debug.keystore ~/.android/debug.keystore
 
       - name: Generate launcher icons
         run: npx capacitor-assets generate --android
-        continue-on-error: true
+
+      - name: Patch Android (splash polos, izin, ikon notifikasi)
+        run: node scripts/patch-android.mjs android
 
       - name: Sync web assets
         run: npx cap sync android

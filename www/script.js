@@ -333,6 +333,15 @@
     if (!switchEl) return;
     switchEl.setAttribute('aria-checked', security.enabled ? 'true' : 'false');
     actions.hidden = !security.enabled;
+    const ca = document.getElementById('lock-create-actions');
+    if (ca) ca.hidden = !!security.enabled;
+    const bioRow = document.getElementById('lock-bio-row');
+    if (bioRow) {
+      bioRow.hidden = !(NATIVE && security.enabled);
+      document.getElementById('settings-bio-switch').setAttribute('aria-checked', security.bio ? 'true' : 'false');
+    }
+    const cfg = document.getElementById('btn-open-pin-config');
+    if (cfg) cfg.lastChild.textContent = security.enabled ? ' Ubah / Nonaktifkan PIN' : ' Buat PIN';
   }
 
   function renderPinDots() {
@@ -378,6 +387,41 @@
     lockBuffer = '';
     renderLockScreenForContext();
     document.getElementById('lock-screen').classList.add('open');
+    maybeBiometric();
+  }
+  /* ---- Biometrik: hanya jalan di APK, hanya untuk membuka kunci; PIN tetap jadi cadangan ---- */
+  async function bioUnlock() {
+    try {
+      await BKNative.biometricAuth('Buka Buku Kas');
+    } catch (e) {
+      if (e.code && /userCancel|systemCancel|appCancel/i.test(e.code)) return;
+      if (e.code === 'biometryLockout') showToast('Biometrik terkunci sementara. Pakai PIN.');
+      return;
+    }
+    if (lockCtx.purpose !== 'unlock') return;
+    guardReset();
+    sessionUnlocked = true;
+    closeLockScreen();
+  }
+  function maybeBiometric() {
+    const btn = document.getElementById('lock-bio-btn');
+    const on = NATIVE && lockCtx.purpose === 'unlock' && lockCtx.step === 'verify' && !!getSecurity().bio;
+    if (btn) btn.hidden = !on;
+    if (on && !maybeBiometric.busy) {
+      maybeBiometric.busy = true;
+      setTimeout(() => { bioUnlock().finally(() => { maybeBiometric.busy = false; }); }, 350);
+    }
+  }
+  async function toggleBio() {
+    const sec = getSecurity();
+    if (!sec.enabled) return;
+    if (sec.bio) { saveSecurity(Object.assign({}, sec, { bio: false })); updateSettingsLockUI(); showToast('Biometrik dimatikan.'); return; }
+    const info = await BKNative.biometry();
+    if (!info.ok) { showToast('Belum ada sidik jari/wajah terdaftar di HP ini. Daftarkan dulu di Pengaturan HP.'); return; }
+    try { await BKNative.biometricAuth('Aktifkan biometrik untuk Buku Kas'); } catch (e) { showToast('Verifikasi biometrik dibatalkan.'); return; }
+    saveSecurity(Object.assign({}, getSecurity(), { bio: true }));
+    updateSettingsLockUI();
+    showToast('Biometrik aktif. PIN tetap jadi cadangan.');
   }
   function closeLockScreen() {
     document.getElementById('lock-screen').classList.remove('open');
@@ -536,6 +580,9 @@
       }
     });
     document.getElementById('btn-change-pin').addEventListener('click', startChangeFlow);
+    document.getElementById('btn-create-pin').addEventListener('click', startEnableFlow);
+    document.getElementById('settings-bio-switch').addEventListener('click', toggleBio);
+    document.getElementById('lock-bio-btn').addEventListener('click', () => bioUnlock());
   }
 
   /* ---------------------------------------------------------
@@ -678,9 +725,20 @@
     }
   }
   // Timeline splash: total 2.0 dtk (animasi 0–1.55 dtk, zoom keluar 1.55–2.0 dtk)
-  setTimeout(() => sfx('click'), 80);
-  setTimeout(() => sfx('paper'), 640);
-  setTimeout(() => { splashLeaveReady = true; tryLeaveSplash(); }, 1550);
+  // Timeline baru dimulai SETELAH frame pertama tergambar, supaya animasi dompet selalu terlihat
+  // walau WebView lambat memuat skrip di pembukaan pertama.
+  let splashStarted = false;
+  function startSplashTimeline() {
+    if (splashStarted) return;
+    splashStarted = true;
+    const sp = document.getElementById('splash-overlay');
+    if (sp) sp.classList.remove('paused');
+    setTimeout(() => sfx('click'), 80);
+    setTimeout(() => sfx('paper'), 640);
+    setTimeout(() => { splashLeaveReady = true; tryLeaveSplash(); }, 1550);
+  }
+  try { requestAnimationFrame(() => requestAnimationFrame(startSplashTimeline)); } catch (e) { /* fallback di bawah */ }
+  setTimeout(startSplashTimeline, 1200);
 
   /** Pindah ke data & PIN milik pemilik baru (akun lain / tamu). Mengembalikan true jika berpindah. */
   async function ensureOwner(user) {
@@ -953,7 +1011,8 @@
     const total = Object.keys(fresh).reduce((s, k) => s + fresh[k].length, 0);
     state.newIds = total > 0 && total <= 4 ? fresh : null; // impor/sinkron besar tidak dianimasikan
     state._loaded = true;
-    state.wallets = wallets;
+    state.allWallets = wallets;
+    state.wallets = wallets.filter((w) => !w.archived);
     state.categories = categories;
     state.transactions = transactions.sort((a, b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt));
     state.goals = goals;
@@ -962,7 +1021,7 @@
   }
 
   function categoryById(id) { return state.categories.find((c) => c.id === id); }
-  function walletById(id) { return state.wallets.find((w) => w.id === id); }
+  function walletById(id) { return (state.allWallets || state.wallets).find((w) => w.id === id); }
 
   /* Perpindahan dana internal (transfer dompet, setor/tarik tabungan, pokok utang-piutang)
      mengubah saldo dompet tetapi BUKAN pemasukan/pengeluaran sungguhan. */
@@ -1218,6 +1277,7 @@
       bindTxRowClicks(list);
     }
     if (window.BK && BK.views && BK.views.dashboardExtra) BK.views.dashboardExtra();
+    if (window.BK && BK.views && BK.views.dashWidget) BK.views.dashWidget();
   }
 
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
@@ -1531,7 +1591,7 @@
       </div>
     `).join('');
     list.querySelectorAll('.wallet-card').forEach((card) => {
-      card.addEventListener('click', () => openWalletModal(card.dataset.walletId));
+      card.addEventListener('click', () => (window.BK && BK.openWalletDetail ? BK.openWalletDetail(card.dataset.walletId) : openWalletModal(card.dataset.walletId)));
     });
   }
 
@@ -2014,6 +2074,7 @@
     document.getElementById('tx-id').value = editing ? editing.id : '';
     document.getElementById('tx-modal-title').textContent = editing ? 'Edit Transaksi' : 'Tambah Transaksi';
     document.getElementById('tx-delete-btn').hidden = !editing;
+    document.getElementById('tx-dup-btn').hidden = !editing;
 
     const type = editing ? editing.type : 'expense';
     setTxTypeSegment(type);
@@ -2029,6 +2090,25 @@
     }
 
     openModal('modal-tx');
+  }
+
+  /** Duplikat transaksi yang sedang diedit: buka form baru berisi data yang sama (tanggal hari ini). */
+  function duplicateTx() {
+    const t = state.transactions.find((x) => x.id === document.getElementById('tx-id').value);
+    if (!t) return;
+    closeModal('modal-tx');
+    setTimeout(() => {
+      openTxModal(null);
+      if (!document.getElementById('modal-tx').classList.contains('open')) return;
+      setTxTypeSegment(t.type);
+      document.getElementById('tx-amount').value = t.amount.toLocaleString('id-ID');
+      document.getElementById('tx-note').value = t.note || '';
+      if (t.type !== 'transfer' && t.categoryId) document.getElementById('tx-category').value = t.categoryId;
+      document.getElementById('tx-wallet').value = t.walletId;
+      if (t.type === 'transfer' && t.toWalletId) document.getElementById('tx-to-wallet').value = t.toWalletId;
+      document.getElementById('tx-modal-title').textContent = 'Duplikat Transaksi';
+      showToast('Salinan siap. Periksa lalu simpan.');
+    }, 260);
   }
 
   function txSummary(t) {
@@ -2114,7 +2194,7 @@
   function openWalletModal(id) {
     const form = document.getElementById('form-wallet');
     form.reset();
-    const editing = id ? state.wallets.find((w) => w.id === id) : null;
+    const editing = id ? walletById(id) : null;
     document.getElementById('wallet-id').value = editing ? editing.id : '';
     document.getElementById('wallet-modal-title').textContent = editing ? 'Edit Dompet' : 'Tambah Dompet';
     document.getElementById('wallet-delete-btn').hidden = !editing;
@@ -2137,8 +2217,9 @@
       initialBalance: parseAmount(document.getElementById('wallet-initial').value)
     };
     if (id) {
-      const existing = state.wallets.find((w) => w.id === id);
+      const existing = walletById(id);
       wallet.createdAt = existing ? existing.createdAt : new Date().toISOString();
+      if (existing && existing.archived) wallet.archived = true;
     }
     await DB.saveWallet(wallet);
     await reloadAll();
@@ -2505,6 +2586,7 @@
   function bindTxForm() {
     document.getElementById('form-tx').addEventListener('submit', handleTxSubmit);
     document.getElementById('tx-delete-btn').addEventListener('click', requestDeleteTx);
+    document.getElementById('tx-dup-btn').addEventListener('click', duplicateTx);
     document.querySelectorAll('#tx-type-segmented .segment').forEach((seg) => {
       seg.addEventListener('click', () => setTxTypeSegment(seg.dataset.txType));
     });
@@ -3169,55 +3251,14 @@
   }
 
   /* ---------------------------------------------------------
-     NOTIFIKASI BROWSER (hanya saat aplikasi terbuka/berjalan)
+     NOTIFIKASI — mesin lengkap ada di engage.js (BK.notif):
+     notifikasi native di bilah notifikasi HP (APK) + cadangan Web Notification di browser.
   --------------------------------------------------------- */
-  const NOTIFIED_KEY = 'bukukas-notified';
-  function notifSupported() { return 'Notification' in window; }
-  function notifOn() { return loadSettings().notif === true && notifSupported() && Notification.permission === 'granted'; }
-
-  function updateNotifSwitch() {
-    const sw = document.getElementById('settings-notif-switch');
-    sw.setAttribute('aria-checked', notifOn() ? 'true' : 'false');
-    const desc = document.getElementById('notif-desc');
-    if (!notifSupported()) desc.textContent = 'Browser ini tidak mendukung notifikasi.';
-    else if (Notification.permission === 'denied') desc.textContent = 'Izin notifikasi ditolak. Aktifkan lewat pengaturan browser.';
-    else desc.textContent = 'Ingatkan jatuh tempo hutang & piutang saat aplikasi dibuka';
-  }
-
-  async function toggleNotif() {
-    if (!notifSupported()) { showToast('Browser ini tidak mendukung notifikasi.'); return; }
-    const s = loadSettings();
-    if (notifOn()) { s.notif = false; saveSettings(s); updateNotifSwitch(); showToast('Notifikasi dimatikan.'); return; }
-    let perm = Notification.permission;
-    if (perm === 'default') perm = await Notification.requestPermission();
-    if (perm !== 'granted') { updateNotifSwitch(); showToast('Izin notifikasi tidak diberikan.'); return; }
-    s.notif = true; saveSettings(s); updateNotifSwitch();
-    showToast('Notifikasi pengingat aktif.');
-    checkReminderNotifications(true);
-  }
-
-  async function showNotif(title, body, tag) {
-    try {
-      const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
-      if (reg && reg.showNotification) { await reg.showNotification(title, { body, tag, icon: 'icons/icon-192.png', badge: 'icons/favicon-32.png' }); return; }
-    } catch (e) { /* fallback */ }
-    try { new Notification(title, { body, tag, icon: 'icons/icon-192.png' }); } catch (e) { /* abaikan */ }
-  }
-
-  function checkReminderNotifications(force) {
+  function updateNotifSwitch() { if (window.BK && BK.notif) BK.notif.updateSwitch(); }
+  function toggleNotif() { if (window.BK && BK.notif) BK.notif.toggle(); }
+  function checkReminderNotifications() {
     updateReminderUI();
-    if (!notifOn()) return;
-    let log = {};
-    try { log = JSON.parse(localStorage.getItem(NOTIFIED_KEY)) || {}; } catch (e) { log = {}; }
-    const today = todayISODate();
-    getReminders().forEach((r) => {
-      const key = r.d.id;
-      if (!force && log[key] === today) return;
-      const t = reminderText(r);
-      showNotif('Buku Kas — ' + t.title, `${formatRupiah(debtRemaining(r.d))} · ${t.when}`, 'debt-' + key);
-      log[key] = today;
-    });
-    try { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(log)); } catch (e) { /* abaikan */ }
+    if (window.BK && BK.notif) BK.notif.reschedule();
   }
 
   /* ---------------------------------------------------------
@@ -3360,10 +3401,31 @@
     }
   }
 
+  /** Di APK: pilih Kamera / Galeri. Di browser: dialog bawaan (sudah menawarkan keduanya di HP). */
+  function pickReceiptSource() {
+    if (NATIVE && document.getElementById('modal-photo-src')) openModal('modal-photo-src');
+    else document.getElementById('receipt-input').click();
+  }
+
   function bindReceipt() {
     const input = document.getElementById('receipt-input');
-    document.getElementById('btn-scan-receipt').addEventListener('click', () => input.click());
+    document.getElementById('btn-scan-receipt').addEventListener('click', pickReceiptSource);
     input.addEventListener('change', () => handleReceiptFile(input.files && input.files[0]));
+    const src = document.getElementById('modal-photo-src');
+    if (src) src.addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-photo]');
+      if (!b) return;
+      closeModal('modal-photo-src');
+      if (b.dataset.photo === 'gallery') { input.click(); return; }
+      try {
+        const file = await BKNative.takePhoto();
+        handleReceiptFile(file);
+      } catch (err) {
+        const m = String(err && err.message || err);
+        if (/cancel|dismiss/i.test(m)) return;
+        showToast(/perm|denied|izin/i.test(m) ? 'Izin kamera ditolak. Aktifkan di Pengaturan → Izin aplikasi.' : 'Kamera tidak bisa dibuka. Coba pilih dari galeri.');
+      }
+    });
   }
 
   /* ---------------------------------------------------------
@@ -3407,9 +3469,9 @@
       startUnlockFlow();
     }
 
-    setTimeout(() => checkReminderNotifications(false), 1800);
-    setInterval(() => checkReminderNotifications(false), 30 * 60 * 1000);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkReminderNotifications(false); });
+    setTimeout(() => checkReminderNotifications(), 1800);
+    setInterval(() => checkReminderNotifications(), 30 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkReminderNotifications(); });
 
     if (!OFFLINE_APP && !NATIVE && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').catch(() => {});
@@ -3440,7 +3502,7 @@
     openTxModal, openDebtModal, setDebtType, openGoalTransferModal, setTxTypeSegment,
     setTxSource: (s) => { txFromScan = s; },
     setThemeMode, loadSettings, saveSettings, openWalletModal, openGoalModal, getReminders,
-    openReceiptPicker: () => document.getElementById('receipt-input').click(),
+    openReceiptPicker: () => pickReceiptSource(), handleReceiptFile: (f) => handleReceiptFile(f),
     openTxDraft: (d) => {
       openTxModal(null);
       if (!document.getElementById('modal-tx').classList.contains('open')) return;

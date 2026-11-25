@@ -19,7 +19,7 @@
     ['Belanja', ['indomaret', 'alfamart', 'alfamidi', 'supermarket', 'minimarket', 'hypermart', 'transmart', 'superindo', 'super indo', 'giant', 'lotte', 'carrefour', 'mart', 'toko', 'swalayan', 'ranch market', 'farmers', 'miniso', 'uniqlo', 'hnm']]
   ];
 
-  const TOTAL_STRONG = /(grand\s*total|total\s*(bayar|belanja|tagihan|pembayaran|akhir|harga)|jumlah\s*(bayar|tagihan|total)|amount\s*due|total\s*due|netto|net\s*total|total\s*rp|total\s*:)/i;
+  const TOTAL_STRONG = /(nominal(\s*transfer)?|jumlah\s*transfer|total\s*transfer|grand\s*total|total\s*(bayar|belanja|tagihan|pembayaran|akhir|harga)|jumlah\s*(bayar|tagihan|total)|amount\s*due|total\s*due|netto|net\s*total|total\s*rp|total\s*:)/i;
   const TOTAL_WEAK = /(^|\s)(total|jumlah|tagihan|bayar|amount)(\s|:|$)/i;
   const NOT_TOTAL = /(sub\s*-?\s*total|kembali|change|kembalian|tunai|cash|debit|kredit|credit|ppn|pajak|tax|diskon|discount|hemat|point|poin|saldo|dpp|service|servis|qty|harga\s*satuan|item)/i;
 

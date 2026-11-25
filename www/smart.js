@@ -249,7 +249,7 @@
   async function listen() {
     try {
       if (NATIVE) {
-        const SR = window.Capacitor.registerPlugin('SpeechRecognition');
+        const SR = window.BKNative.plugin('SpeechRecognition');
         const av = await SR.available();
         if (!av || !av.available) { showToast('Pengenalan suara tidak tersedia di perangkat ini. Pakai ikon mikrofon di keyboard.'); return; }
         const perm = await SR.requestPermissions();
@@ -419,8 +419,136 @@
     $('im-go').textContent = importable.length ? `Impor ${importable.length} transaksi` : 'Tidak ada yang bisa diimpor';
   }
 
+  /* ---------- Impor PDF (offline, pdf.js) ---------- */
+  const MONEY_RE = /(?:Rp\.?\s*)?[-+(]?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?\)?(?:\s*(?:DB|CR|DR|D|K))?(?![\d])|(?:Rp\.?\s*)[-+(]?\d+(?:[.,]\d{1,2})?\)?/gi;
+  const DATE_LEAD = /^\s*(\d{4}-\d{2}-\d{2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}|\d{1,2}\s+[A-Za-z]{3,}\.?\s+\d{2,4}|\d{1,2}[/-]\d{1,2})(?![\d])/;
+  const INCOME_WORDS = /(setor|masuk|kredit|bunga|gaji|salary|refund|cashback|incoming|terima|credit)/i;
+  const EXPENSE_WORDS = /(tarik|keluar|debit|bayar|pembelian|biaya|admin|pajak|transfer ke|payment|purchase|fee)/i;
+
+  /** Baris teks hasil ekstraksi PDF -> tabel [Tanggal, Keterangan, Nominal] (nominal bertanda). */
+  function pdfLinesToTable(lines, fallbackYear) {
+    const rows = [];
+    let cur = null;
+    const yr = fallbackYear || new Date().getFullYear();
+    lines.forEach((raw) => {
+      const line = String(raw).replace(/\s+/g, ' ').trim();
+      if (!line) return;
+      const dm = DATE_LEAD.exec(line);
+      if (dm) {
+        let ds = dm[1];
+        if (/^\d{1,2}[/-]\d{1,2}$/.test(ds)) ds += '/' + yr;
+        const date = parseDate(ds);
+        if (date) {
+          const rest = line.slice(dm[0].length);
+          const monies = [];
+          const desc = rest.replace(MONEY_RE, (t) => { monies.push(t.trim()); return ' '; }).replace(/\s+/g, ' ').trim();
+          if (monies.length) {
+            cur = { date, desc, monies: monies.map((t) => ({ raw: t, v: parseMoney(t) })).filter((m) => m.v != null) };
+            rows.push(cur);
+            return;
+          }
+          cur = { date, desc: rest.trim(), monies: [] };
+          rows.push(cur);
+          return;
+        }
+      }
+      // baris lanjutan: nominal atau keterangan tambahan milik baris tanggal sebelumnya
+      if (cur) {
+        const monies = [];
+        const extra = line.replace(MONEY_RE, (t) => { monies.push(t.trim()); return ' '; }).replace(/\s+/g, ' ').trim();
+        if (!cur.monies.length && monies.length) cur.monies = monies.map((t) => ({ raw: t, v: parseMoney(t) })).filter((m) => m.v != null);
+        if (extra && extra.length < 80 && !/^(halaman|page|saldo awal|saldo akhir|total|periode)/i.test(extra)) cur.desc = (cur.desc + ' ' + extra).trim().slice(0, 150);
+      }
+    });
+    const data = rows.filter((r) => r.monies.length);
+    // arah baris (naik/turun) dipastikan lewat selisih saldo bila tiap baris punya >=2 nominal
+    const withBal = data.filter((r) => r.monies.length >= 2);
+    let order = 0;
+    if (withBal.length >= 2 && withBal.length === data.length) {
+      let asc = 0, desc = 0;
+      for (let i = 1; i < data.length; i++) {
+        const amt = Math.abs(data[i].monies[data[i].monies.length - 2].v);
+        const b0 = data[i - 1].monies[data[i - 1].monies.length - 1].v, b1 = data[i].monies[data[i].monies.length - 1].v;
+        if (Math.abs(b1 - b0) === amt) asc++;
+        if (Math.abs(b0 - b1) === amt && Math.abs(b1 - b0) === amt) { /* sama besar, abaikan */ }
+      }
+      for (let i = 0; i < data.length - 1; i++) {
+        const amt = Math.abs(data[i].monies[data[i].monies.length - 2].v);
+        const b0 = data[i].monies[data[i].monies.length - 1].v, b1 = data[i + 1].monies[data[i + 1].monies.length - 1].v;
+        if (Math.abs(b0 - b1) === amt) desc++;
+      }
+      order = asc >= desc ? 1 : -1; // 1: lama->baru
+    }
+    const out = [];
+    data.forEach((r, i) => {
+      let amt, sign = 0;
+      const n = r.monies.length;
+      if (n >= 2) {
+        amt = Math.abs(r.monies[n - 2].v);
+        const mk = /(DB|DR|D)\s*$/i.test(r.monies[n - 2].raw) ? -1 : /(CR|K)\s*$/i.test(r.monies[n - 2].raw) ? 1 : 0;
+        if (mk) sign = mk;
+        else if (r.monies[n - 2].v < 0) sign = -1;
+        else if (order !== 0) {
+          const prev = order === 1 ? data[i - 1] : data[i + 1];
+          if (prev && prev.monies.length >= 2) {
+            const d = r.monies[n - 1].v - prev.monies[prev.monies.length - 1].v;
+            if (Math.abs(d) === amt) sign = d > 0 ? 1 : -1;
+          }
+        }
+      } else {
+        amt = Math.abs(r.monies[0].v);
+        const mk = /(DB|DR|D)\s*$/i.test(r.monies[0].raw) ? -1 : /(CR|K)\s*$/i.test(r.monies[0].raw) ? 1 : 0;
+        sign = mk || (r.monies[0].v < 0 ? -1 : 0);
+      }
+      if (!sign) sign = INCOME_WORDS.test(r.desc) && !EXPENSE_WORDS.test(r.desc) ? 1 : -1;
+      if (amt > 0) out.push([r.date, r.desc, sign * amt]);
+    });
+    return [['Tanggal', 'Keterangan', 'Nominal']].concat(out);
+  }
+
+  async function pdfToLines(file) {
+    await new Promise((resolve, reject) => {
+      if (window.pdfjsLib) return resolve();
+      const el = document.createElement('script'); el.src = 'vendor/pdfjs/pdf.min.js'; el.onload = resolve; el.onerror = () => reject(new Error('Gagal memuat pembaca PDF'));
+      document.head.appendChild(el);
+    });
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdfjs/pdf.worker.min.js';
+    const task = window.pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
+    task.onPassword = (cb, reason) => {
+      const p = window.prompt(reason === 2 ? 'Password salah. Masukkan lagi password PDF:' : 'PDF ini terkunci. Masukkan password PDF:');
+      if (p == null) { task.destroy(); return; }
+      cb(p);
+    };
+    const pdf = await task.promise;
+    const lines = [];
+    let chars = 0;
+    for (let p = 1; p <= Math.min(pdf.numPages, 60); p++) {
+      const tc = await (await pdf.getPage(p)).getTextContent();
+      const byY = [];
+      tc.items.forEach((it) => {
+        if (!it.str || !it.str.trim()) return;
+        const y = it.transform[5], x = it.transform[4];
+        chars += it.str.length;
+        let ln = byY.find((l) => Math.abs(l.y - y) < 3);
+        if (!ln) { ln = { y, parts: [] }; byY.push(ln); }
+        ln.parts.push({ x, s: it.str });
+      });
+      byY.sort((a, b) => b.y - a.y).forEach((l) => lines.push(l.parts.sort((a, b) => a.x - b.x).map((q) => q.s).join(' ')));
+    }
+    if (chars < 20) throw new Error('PDF ini berupa gambar/hasil scan, tidak ada teks yang bisa dibaca. Unduh mutasi versi teks dari m-banking, atau foto per halaman lewat Pindai struk.');
+    return lines;
+  }
+
   async function readFileAsTable(file) {
     if (file.size > 5 * 1024 * 1024) throw new Error('File terlalu besar (maks 5 MB).');
+    if (/\.pdf$/i.test(file.name) || file.type === 'application/pdf') {
+      const lines = await pdfToLines(file);
+      const ym = /(?:19|20)\d{2}/.exec(lines.slice(0, 30).join(' '));
+      const table = pdfLinesToTable(lines, ym ? +ym[0] : null);
+      if (table.length < 2) throw new Error('Tidak ada baris transaksi yang dikenali di PDF ini. Coba ekspor mutasi sebagai CSV/Excel.');
+      showToast('PDF terbaca. Periksa tanda masuk/keluar di pratinjau sebelum impor.');
+      return table;
+    }
     if (/\.(xlsx|xls)$/i.test(file.name)) {
       await new Promise((resolve, reject) => {
         if (window.XLSX) return resolve();
@@ -579,7 +707,7 @@
   const baseTagihan = BK.views.tagihan;
   BK.views.tagihan = () => { baseTagihan(); renderSuggestions(); };
   BK.views.impor = renderImportView;
-  BK.smart = { parseQuick, findAmount, wordsToNumber, suggestCategory, parseCSV, parseDate, parseMoney, detectColumns, buildImportRows, detectRecurring };
+  BK.smart = { parseQuick, findAmount, wordsToNumber, suggestCategory, parseCSV, parseDate, parseMoney, detectColumns, buildImportRows, detectRecurring, pdfLinesToTable, pdfToLines };
 
   bind();
 })();

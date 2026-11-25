@@ -16,6 +16,15 @@
     return window.BUKUKAS_FIREBASE_READY === true && typeof firebase !== 'undefined';
   }
 
+  /* Cache offline Firestore (dipakai fitur Keluarga): catatan tetap terbaca/tertulis saat offline.
+     Harus dipanggil sebelum operasi Firestore pertama; gagal diam-diam bila tidak didukung. */
+  try {
+    if (ready() && !window.__bkPersist) {
+      window.__bkPersist = true;
+      firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch(function () { /* tab lain/ tidak didukung: tetap online-only */ });
+    }
+  } catch (e) { /* abaikan */ }
+
   function friendlyAuthError(err) {
     const code = err && err.code ? err.code : '';
     const map = {
@@ -47,7 +56,7 @@
     return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   }
   function nativeAuthPlugin() {
-    return window.Capacitor.registerPlugin('FirebaseAuthentication');
+    return window.BKNative.plugin('FirebaseAuthentication');
   }
 
   function gisAvailable() {

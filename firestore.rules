@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cadangan & profil pribadi: hanya pemilik akun.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Pemakaian asisten AI: hanya server (Admin SDK) yang boleh.
+    match /aiUsage/{id} {
+      allow read, write: if false;
+    }
+
+    // Keluarga: ID dokumen = kode undangan acak (tidak bisa ditebak).
+    match /families/{fid} {
+      function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+      function isMember() { return signedIn() && request.auth.uid in resource.data.memberUids; }
+
+      allow read: if isMember();
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.memberUids == [request.auth.uid]
+        && request.resource.data.name is string && request.resource.data.name.size() <= 40;
+      // Gabung: tambahkan diri sendiri saja (tahu ID keluarga = bukti undangan).
+      allow update: if signedIn() && (
+        (isMember() && request.auth.uid == resource.data.ownerUid
+          && request.resource.data.ownerUid == resource.data.ownerUid)
+        ||
+        (!(request.auth.uid in resource.data.memberUids)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids', 'memberNames'])
+          && request.resource.data.memberUids == resource.data.memberUids.concat([request.auth.uid])
+          && resource.data.memberUids.size() < 10)
+        ||
+        // anggota boleh keluar (menghapus dirinya sendiri)
+        (isMember() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids', 'memberNames'])
+          && !(request.auth.uid in request.resource.data.memberUids))
+      );
+      allow delete: if isMember() && request.auth.uid == resource.data.ownerUid;
+
+      match /entries/{eid} {
+        function member() { return signedIn() && request.auth.uid in get(/databases/$(database)/documents/families/$(fid)).data.memberUids; }
+        function owner() { return signedIn() && request.auth.uid == get(/databases/$(database)/documents/families/$(fid)).data.ownerUid; }
+        allow read: if member();
+        allow create: if member() && request.resource.data.byUid == request.auth.uid
+          && request.resource.data.amount is number && request.resource.data.amount > 0
+          && request.resource.data.type in ['in', 'out'];
+        allow update, delete: if member() && (resource.data.byUid == request.auth.uid || owner());
+      }
+    }
+  }
+}

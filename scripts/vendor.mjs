@@ -26,9 +26,15 @@ for (const f of fs.readdirSync(`${nm}/tesseract.js-core`).filter((n) => n.endsWi
 for (const l of ['ind', 'eng']) {
   cp(`${nm}/@tesseract.js-data/${l}/4.0.0_best_int/${l}.traineddata.gz`, `${out}/ocr/lang/${l}.traineddata.gz`);
 }
+// pdf.js (build legacy, UMD) untuk impor mutasi PDF secara offline
+cp(`${nm}/pdfjs-dist/legacy/build/pdf.min.js`, `${out}/pdfjs/pdf.min.js`);
+cp(`${nm}/pdfjs-dist/legacy/build/pdf.worker.min.js`, `${out}/pdfjs/pdf.worker.min.js`);
 console.log('vendor siap');
 
 // Pustaka ekspor (dimuat hanya saat dipakai)
 cp(`${nm}/xlsx/dist/xlsx.full.min.js`, `${out}/xlsx.full.min.js`);
 cp(`${nm}/jspdf/dist/jspdf.umd.min.js`, `${out}/jspdf.umd.min.js`);
 cp(`${nm}/jspdf-autotable/dist/jspdf.plugin.autotable.min.js`, `${out}/jspdf.plugin.autotable.min.js`);
+
+// Inti Capacitor (menyediakan window.Capacitor.registerPlugin) — harus dimuat sebelum skrip aplikasi
+cp(`${nm}/@capacitor/core/dist/capacitor.js`, `${out}/capacitor.js`);
